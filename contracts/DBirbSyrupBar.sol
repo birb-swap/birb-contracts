@@ -2,10 +2,10 @@ pragma solidity 0.6.12;
 
 import "@pancakeswap/pancake-swap-lib/contracts/token/BEP20/BEP20.sol";
 
-import "./GBirbToken.sol";
+import "./DBirbToken.sol";
 
-// SyrupBar with Governance.
-contract SyrupBar is BEP20('SyrupBar Token', 'SYRUP') {
+// DBirbSyrupBar with Governance.
+contract DBirbSyrupBar is BEP20('SyrupBar Token', 'SYRUP') {
     /// @notice Creates `_amount` token to `_to`. Must only be called by the owner (MasterChef).
     function mint(address _to, uint256 _amount) public onlyOwner {
         _mint(_to, _amount);
@@ -17,22 +17,22 @@ contract SyrupBar is BEP20('SyrupBar Token', 'SYRUP') {
         _moveDelegates(_delegates[_from], address(0), _amount);
     }
 
-    // The GBIRB TOKEN!
-    GBirbToken public gbirb;
+    // The DBIRB TOKEN!
+    DBirbToken public dbirb;
 
     constructor(
-        GBirbToken _gbirb
+        DBirbToken _dbirb
     ) public {
-        gbirb = _gbirb;
+        dbirb = _dbirb;
     }
 
-    // Safe gbirb transfer function, just in case if rounding error causes pool to not have enough GBIRBs.
-    function safeGBirbTransfer(address _to, uint256 _amount) public onlyOwner {
-        uint256 gbirbBal = gbirb.balanceOf(address(this));
-        if (_amount > gbirbBal) {
-            gbirb.transfer(_to, gbirbBal);
+    // Safe dbirb transfer function, just in case if rounding error causes pool to not have enough DBIRBs.
+    function safeDBirbTransfer(address _to, uint256 _amount) public onlyOwner {
+        uint256 dbirbBal = dbirb.balanceOf(address(this));
+        if (_amount > dbirbBal) {
+            dbirb.transfer(_to, dbirbBal);
         } else {
-            gbirb.transfer(_to, _amount);
+            dbirb.transfer(_to, _amount);
         }
     }
 
@@ -138,9 +138,9 @@ contract SyrupBar is BEP20('SyrupBar Token', 'SYRUP') {
         );
 
         address signatory = ecrecover(digest, v, r, s);
-        require(signatory != address(0), "GBIRB::delegateBySig: invalid signature");
-        require(nonce == nonces[signatory]++, "GBIRB::delegateBySig: invalid nonce");
-        require(now <= expiry, "GBIRB::delegateBySig: signature expired");
+        require(signatory != address(0), "DBIRB::delegateBySig: invalid signature");
+        require(nonce == nonces[signatory]++, "DBIRB::delegateBySig: invalid nonce");
+        require(now <= expiry, "DBIRB::delegateBySig: signature expired");
         return _delegate(signatory, delegatee);
     }
 
@@ -170,7 +170,7 @@ contract SyrupBar is BEP20('SyrupBar Token', 'SYRUP') {
         view
         returns (uint256)
     {
-        require(blockNumber < block.number, "GBIRB::getPriorVotes: not yet determined");
+        require(blockNumber < block.number, "DBIRB::getPriorVotes: not yet determined");
 
         uint32 nCheckpoints = numCheckpoints[account];
         if (nCheckpoints == 0) {
@@ -207,7 +207,7 @@ contract SyrupBar is BEP20('SyrupBar Token', 'SYRUP') {
         internal
     {
         address currentDelegate = _delegates[delegator];
-        uint256 delegatorBalance = balanceOf(delegator); // balance of underlying GBIRBs (not scaled);
+        uint256 delegatorBalance = balanceOf(delegator); // balance of underlying DBIRBs (not scaled);
         _delegates[delegator] = delegatee;
 
         emit DelegateChanged(delegator, currentDelegate, delegatee);
@@ -243,7 +243,7 @@ contract SyrupBar is BEP20('SyrupBar Token', 'SYRUP') {
     )
         internal
     {
-        uint32 blockNumber = safe32(block.number, "GBIRB::_writeCheckpoint: block number exceeds 32 bits");
+        uint32 blockNumber = safe32(block.number, "DBIRB::_writeCheckpoint: block number exceeds 32 bits");
 
         if (nCheckpoints > 0 && checkpoints[delegatee][nCheckpoints - 1].fromBlock == blockNumber) {
             checkpoints[delegatee][nCheckpoints - 1].votes = newVotes;

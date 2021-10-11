@@ -904,16 +904,16 @@ library SafeBEP20 {
     }
 }
 
-// File: contracts/GBirbPoolInitializable.sol
+// File: contracts/DBirbPoolInitializable.sol
 
 pragma solidity 0.6.12;
 
-contract GBirbPoolInitializable is Ownable, ReentrancyGuard {
+contract DBirbPoolInitializable is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     using SafeBEP20 for IBEP20;
 
     // The address of the smart chef factory
-    address public GBIRB_POOL_FACTORY;
+    address public DBIRB_POOL_FACTORY;
 
     // Whether a limit is set for users
     bool public hasUserLimit;
@@ -981,7 +981,7 @@ contract GBirbPoolInitializable is Ownable, ReentrancyGuard {
     event Withdraw(address indexed user, uint256 amount);
 
     constructor() public {
-        GBIRB_POOL_FACTORY = msg.sender;
+        DBIRB_POOL_FACTORY = msg.sender;
     }
 
     /**
@@ -1008,7 +1008,7 @@ contract GBirbPoolInitializable is Ownable, ReentrancyGuard {
         address _admin
     ) external {
         require(!isInitialized, "Already initialized");
-        require(msg.sender == GBIRB_POOL_FACTORY, "Not factory");
+        require(msg.sender == DBIRB_POOL_FACTORY, "Not factory");
         require(_feeAddress != address(0), "Invalid zero address");
 
         _stakedToken.balanceOf(address(this));
@@ -1367,12 +1367,12 @@ contract GBirbPoolInitializable is Ownable, ReentrancyGuard {
 }
 
 
-// File: contracts/GBirbPoolFactory.sol
+// File: contracts/DBirbPoolFactory.sol
 
 pragma solidity 0.6.12;
 
-contract GBirbPoolFactory is Ownable {
-    event NewGBirbPoolContract(address indexed smartChef);
+contract DBirbPoolFactory is Ownable {
+    event NewDBirbPoolContract(address indexed smartChef);
 
     uint16 public constant MAX_DEPOSIT_FEE = 2000;
     
@@ -1407,7 +1407,7 @@ contract GBirbPoolFactory is Ownable {
         
         require(_depositFee <= MAX_DEPOSIT_FEE, "Invalid deposit fee value");
 
-        bytes memory bytecode = type(GBirbPoolInitializable).creationCode;
+        bytes memory bytecode = type(DBirbPoolInitializable).creationCode;
         bytes32 salt =
             keccak256(
                 abi.encodePacked(_stakedToken, _rewardToken, _startBlock)
@@ -1423,7 +1423,7 @@ contract GBirbPoolFactory is Ownable {
             )
         }
 
-        GBirbPoolInitializable(smartChefAddress).initialize(
+        DBirbPoolInitializable(smartChefAddress).initialize(
             _stakedToken,
             _rewardToken,
             _rewardPerBlock,
@@ -1435,6 +1435,6 @@ contract GBirbPoolFactory is Ownable {
             _admin
         );
 
-        emit NewGBirbPoolContract(smartChefAddress);
+        emit NewDBirbPoolContract(smartChefAddress);
     }
 }

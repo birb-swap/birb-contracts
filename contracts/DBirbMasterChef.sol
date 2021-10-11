@@ -5,9 +5,9 @@ import "@pancakeswap/pancake-swap-lib/contracts/token/BEP20/IBEP20.sol";
 import "@pancakeswap/pancake-swap-lib/contracts/token/BEP20/SafeBEP20.sol";
 import "@pancakeswap/pancake-swap-lib/contracts/access/Ownable.sol";
 
-import "./libs/IGBirbReferral.sol";
-import "./GBirbToken.sol";
-import "./SyrupBar.sol";
+import "./libs/IDBirbReferral.sol";
+import "./DBirbToken.sol";
+import "./DBirbSyrupBar.sol";
 
 // import "@nomiclabs/buidler/console.sol";
 
@@ -15,14 +15,14 @@ interface IMigratorChef {
     function migrate(IBEP20 token) external returns (IBEP20);
 }
 
-// MasterChef is the master of GBIRB. He can make GBIRB and he is a fair guy.
+// DBirbMasterChef is the master of DBIRB. He can make DBIRB and he is a fair guy.
 //
 // Note that it's ownable and the owner wields tremendous power. The ownership
-// will be transferred to a governance smart contract once GBIRB is sufficiently
+// will be transferred to a governance smart contract once DBIRB is sufficiently
 // distributed and the community can show to govern itself.
 //
 // Have fun reading it. Hopefully it's bug-free. God bless.
-contract MasterChef is Ownable {
+contract DBirbMasterChef is Ownable {
     using SafeMath for uint256;
     using SafeBEP20 for IBEP20;
 
@@ -31,13 +31,13 @@ contract MasterChef is Ownable {
         uint256 amount; // How many LP tokens the user has provided.
         uint256 rewardDebt; // Reward debt. See explanation below.
         //
-        // We do some fancy math here. Basically, any point in time, the amount of GBIRBs
+        // We do some fancy math here. Basically, any point in time, the amount of DBIRBs
         // entitled to a user but is pending to be distributed is:
         //
-        //   pending reward = (user.amount * pool.accGBirbPerShare) - user.rewardDebt
+        //   pending reward = (user.amount * pool.accDBirbPerShare) - user.rewardDebt
         //
         // Whenever a user deposits or withdraws LP tokens to a pool. Here's what happens:
-        //   1. The pool's `accGBirbPerShare` (and `lastRewardBlock`) gets updated.
+        //   1. The pool's `accDBirbPerShare` (and `lastRewardBlock`) gets updated.
         //   2. User receives the pending reward sent to his/her address.
         //   3. User's `amount` gets updated.
         //   4. User's `rewardDebt` gets updated.
@@ -47,32 +47,32 @@ contract MasterChef is Ownable {
     struct PoolInfo {
         IBEP20 lpToken; // Address of LP token contract.
         uint256 lpSupply; // Pool lp supply
-        uint256 allocPoint; // How many allocation points assigned to this pool. GBIRBs to distribute per block.
-        uint256 lastRewardBlock; // Last block number that GBIRBs distribution occurs.
-        uint256 accGBirbPerShare; // Accumulated GBIRBs per share, times 1e12. See below.
+        uint256 allocPoint; // How many allocation points assigned to this pool. DBIRBs to distribute per block.
+        uint256 lastRewardBlock; // Last block number that DBIRBs distribution occurs.
+        uint256 accDBirbPerShare; // Accumulated DBIRBs per share, times 1e12. See below.
         uint16 depositFeeBP; // Deposit fee in basis points
     }
 
-    // The GBIRB TOKEN!
-    GBirbToken public gbirb;
+    // The DBIRB TOKEN!
+    DBirbToken public dbirb;
     // The SYRUP TOKEN!
-    SyrupBar public syrup;
+    DBirbSyrupBar public syrup;
     // Dev address.
     address public devaddr;
     // Deposit Fee address
     address public feeAddress;
-    // GBIRB tokens created per block.
-    uint256 public gbirbPerBlock;
+    // DBIRB tokens created per block.
+    uint256 public dbirbPerBlock;
     // Maximum emission rate
     uint256 public constant MAXIMUM_EMISSON_RATE = 10**24;
 
-    // Bonus muliplier for early gbirb makers.
+    // Bonus muliplier for early dbirb makers.
     uint256 public BONUS_MULTIPLIER = 1;
     // The migrator contract. It has a lot of power. Can only be set through governance (owner).
     IMigratorChef public migrator;
 
-    // GBirb referral contract address.
-    IGBirbReferral public gbirbReferral;
+    // DBirb referral contract address.
+    IDBirbReferral public dbirbReferral;
     // Referral commission rate in basis points.
     uint16 public referralCommissionRate = 0;
     // Max referral commission rate: 5%.
@@ -86,7 +86,7 @@ contract MasterChef is Ownable {
     uint256 public totalAllocPoint = 0;
     // Max deposit fee per pools: 20%
     uint16 public constant MAX_DEPOSIT_FEE = 2000;
-    // The block number when GBIRB mining starts.
+    // The block number when DBIRB mining starts.
     uint256 public startBlock;
 
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
@@ -98,8 +98,8 @@ contract MasterChef is Ownable {
     );
     event SetFeeAddress(address indexed user, address indexed newAddress);
     event SetDevAddress(address indexed user, address indexed newAddress);
-    event UpdateEmissionRate(address indexed user, uint256 gbirbPerBlock);
-    event SetGBirbReferral(address newReferral);
+    event UpdateEmissionRate(address indexed user, uint256 dbirbPerBlock);
+    event SetDBirbReferral(address newReferral);
     event SetReferralCommissionRate(uint16 newCommissionRate);
     event ReferralCommissionPaid(
         address indexed user,
@@ -108,29 +108,29 @@ contract MasterChef is Ownable {
     );
 
     constructor(
-        GBirbToken _gbirb,
-        SyrupBar _syrup,
+        DBirbToken _dbirb,
+        DBirbSyrupBar _syrup,
         address _devaddr,
         address _feeAddress,
-        uint256 _gbirbPerBlock,
+        uint256 _dbirbPerBlock,
         uint256 _startBlock
     ) public {
-        gbirb = _gbirb;
+        dbirb = _dbirb;
         syrup = _syrup;
         devaddr = _devaddr;
         feeAddress = _feeAddress;
-        gbirbPerBlock = _gbirbPerBlock;
+        dbirbPerBlock = _dbirbPerBlock;
         startBlock = _startBlock;
 
         // staking pool
         poolInfo.push(
             PoolInfo({
-                lpToken: _gbirb,
+                lpToken: _dbirb,
                 lpSupply: 0,
                 allocPoint: 1000,
                 lastRewardBlock: startBlock,
                 depositFeeBP: 0,
-                accGBirbPerShare: 0
+                accDBirbPerShare: 0
             })
         );
 
@@ -179,14 +179,14 @@ contract MasterChef is Ownable {
                 lpSupply: 0,
                 allocPoint: _allocPoint,
                 lastRewardBlock: lastRewardBlock,
-                accGBirbPerShare: 0,
+                accDBirbPerShare: 0,
                 depositFeeBP: _depositFeeBP
             })
         );
         updateStakingPool();
     }
 
-    // Update the given pool's GBIRB allocation point. Can only be called by the owner.
+    // Update the given pool's DBIRB allocation point. Can only be called by the owner.
     function set(
         uint256 _pid,
         uint256 _allocPoint,
@@ -252,29 +252,29 @@ contract MasterChef is Ownable {
         return _to.sub(_from).mul(BONUS_MULTIPLIER);
     }
 
-    // View function to see pending GBIRBs on frontend.
-    function pendingGBirb(uint256 _pid, address _user)
+    // View function to see pending DBIRBs on frontend.
+    function pendingDBirb(uint256 _pid, address _user)
         external
         view
         returns (uint256)
     {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
-        uint256 accGBirbPerShare = pool.accGBirbPerShare;
+        uint256 accDBirbPerShare = pool.accDBirbPerShare;
         if (block.number > pool.lastRewardBlock && pool.lpSupply != 0 && totalAllocPoint > 0) {
             uint256 multiplier = getMultiplier(
                 pool.lastRewardBlock,
                 block.number
             );
-            uint256 gbirbReward = multiplier
-                .mul(gbirbPerBlock)
+            uint256 dbirbReward = multiplier
+                .mul(dbirbPerBlock)
                 .mul(pool.allocPoint)
                 .div(totalAllocPoint);
-            accGBirbPerShare = accGBirbPerShare.add(
-                gbirbReward.mul(1e12).div(pool.lpSupply)
+            accDBirbPerShare = accDBirbPerShare.add(
+                dbirbReward.mul(1e12).div(pool.lpSupply)
             );
         }
-        return user.amount.mul(accGBirbPerShare).div(1e12).sub(user.rewardDebt);
+        return user.amount.mul(accDBirbPerShare).div(1e12).sub(user.rewardDebt);
     }
 
     // Update reward variables for all pools. Be careful of gas spending!
@@ -297,25 +297,25 @@ contract MasterChef is Ownable {
             return;
         }
         uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
-        uint256 gbirbReward = multiplier
-            .mul(gbirbPerBlock)
+        uint256 dbirbReward = multiplier
+            .mul(dbirbPerBlock)
             .mul(pool.allocPoint)
             .div(totalAllocPoint);
-        gbirb.mint(devaddr, gbirbReward.div(10));
-        gbirb.mint(address(syrup), gbirbReward);
-        pool.accGBirbPerShare = pool.accGBirbPerShare.add(
-            gbirbReward.mul(1e12).div(pool.lpSupply)
+        dbirb.mint(devaddr, dbirbReward.div(10));
+        dbirb.mint(address(syrup), dbirbReward);
+        pool.accDBirbPerShare = pool.accDBirbPerShare.add(
+            dbirbReward.mul(1e12).div(pool.lpSupply)
         );
         pool.lastRewardBlock = block.number;
     }
 
-    // Deposit LP tokens to MasterChef for GBIRB allocation.
+    // Deposit LP tokens to MasterChef for DBIRB allocation.
     function deposit(
         uint256 _pid,
         uint256 _amount,
         address _referrer
     ) public {
-        require(_pid != 0, "deposit GBIRB by staking");
+        require(_pid != 0, "deposit DBIRB by staking");
 
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
@@ -324,22 +324,22 @@ contract MasterChef is Ownable {
         // Record new referrer
         if (
             _amount > 0 &&
-            address(gbirbReferral) != address(0) &&
+            address(dbirbReferral) != address(0) &&
             _referrer != address(0) &&
             _referrer != msg.sender &&
-            _referrer != gbirbReferral.getReferrer(msg.sender)
+            _referrer != dbirbReferral.getReferrer(msg.sender)
         ) {
-            gbirbReferral.recordReferral(msg.sender, _referrer);
+            dbirbReferral.recordReferral(msg.sender, _referrer);
         }
 
         if (user.amount > 0) {
             uint256 pending = user
                 .amount
-                .mul(pool.accGBirbPerShare)
+                .mul(pool.accDBirbPerShare)
                 .div(1e12)
                 .sub(user.rewardDebt);
             if (pending > 0) {
-                safeGBirbTransfer(msg.sender, pending);
+                safeDBirbTransfer(msg.sender, pending);
                 payReferralCommission(msg.sender, pending);
             }
         }
@@ -361,24 +361,24 @@ contract MasterChef is Ownable {
             user.amount = user.amount.add(_amount).sub(depositFee);
             pool.lpSupply = pool.lpSupply.add(_amount).sub(depositFee);
         }
-        user.rewardDebt = user.amount.mul(pool.accGBirbPerShare).div(1e12);
+        user.rewardDebt = user.amount.mul(pool.accDBirbPerShare).div(1e12);
         emit Deposit(msg.sender, _pid, _amount);
     }
 
     // Withdraw LP tokens from MasterChef.
     function withdraw(uint256 _pid, uint256 _amount) public {
-        require(_pid != 0, "withdraw GBIRB by unstaking");
+        require(_pid != 0, "withdraw DBIRB by unstaking");
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         require(user.amount >= _amount, "withdraw: not good(user balance not enough)");
         require(pool.lpSupply >= _amount, "withdraw: not good(pool balance not enough)");
 
         updatePool(_pid);
-        uint256 pending = user.amount.mul(pool.accGBirbPerShare).div(1e12).sub(
+        uint256 pending = user.amount.mul(pool.accDBirbPerShare).div(1e12).sub(
             user.rewardDebt
         );
         if (pending > 0) {
-            safeGBirbTransfer(msg.sender, pending);
+            safeDBirbTransfer(msg.sender, pending);
             payReferralCommission(msg.sender, pending);
         }
         if (_amount > 0) {
@@ -386,11 +386,11 @@ contract MasterChef is Ownable {
             pool.lpSupply = pool.lpSupply.sub(_amount);
             pool.lpToken.safeTransfer(address(msg.sender), _amount);
         }
-        user.rewardDebt = user.amount.mul(pool.accGBirbPerShare).div(1e12);
+        user.rewardDebt = user.amount.mul(pool.accDBirbPerShare).div(1e12);
         emit Withdraw(msg.sender, _pid, _amount);
     }
 
-    // Stake GBIRB tokens to MasterChef
+    // Stake DBIRB tokens to MasterChef
     function enterStaking(uint256 _amount) public {
         PoolInfo storage pool = poolInfo[0];
         UserInfo storage user = userInfo[0][msg.sender];
@@ -398,11 +398,11 @@ contract MasterChef is Ownable {
         if (user.amount > 0) {
             uint256 pending = user
                 .amount
-                .mul(pool.accGBirbPerShare)
+                .mul(pool.accDBirbPerShare)
                 .div(1e12)
                 .sub(user.rewardDebt);
             if (pending > 0) {
-                safeGBirbTransfer(msg.sender, pending);
+                safeDBirbTransfer(msg.sender, pending);
                 payReferralCommission(msg.sender, pending);
             }
         }
@@ -424,24 +424,24 @@ contract MasterChef is Ownable {
             user.amount = user.amount.add(_amount).sub(depositFee);
             pool.lpSupply = pool.lpSupply.add(_amount).sub(depositFee);
         }
-        user.rewardDebt = user.amount.mul(pool.accGBirbPerShare).div(1e12);
+        user.rewardDebt = user.amount.mul(pool.accDBirbPerShare).div(1e12);
 
         syrup.mint(msg.sender, _amount);
         emit Deposit(msg.sender, 0, _amount);
     }
 
-    // Withdraw GBIRB tokens from STAKING.
+    // Withdraw DBIRB tokens from STAKING.
     function leaveStaking(uint256 _amount) public {
         PoolInfo storage pool = poolInfo[0];
         UserInfo storage user = userInfo[0][msg.sender];
         require(user.amount >= _amount, "withdraw: not good(user balance not enough)");
         require(pool.lpSupply >= _amount, "withdraw: not good(pool balance not enough)");
         updatePool(0);
-        uint256 pending = user.amount.mul(pool.accGBirbPerShare).div(1e12).sub(
+        uint256 pending = user.amount.mul(pool.accDBirbPerShare).div(1e12).sub(
             user.rewardDebt
         );
         if (pending > 0) {
-            safeGBirbTransfer(msg.sender, pending);
+            safeDBirbTransfer(msg.sender, pending);
             payReferralCommission(msg.sender, pending);
         }
         if (_amount > 0) {
@@ -449,7 +449,7 @@ contract MasterChef is Ownable {
             pool.lpSupply = pool.lpSupply.sub(_amount);
             pool.lpToken.safeTransfer(address(msg.sender), _amount);
         }
-        user.rewardDebt = user.amount.mul(pool.accGBirbPerShare).div(1e12);
+        user.rewardDebt = user.amount.mul(pool.accDBirbPerShare).div(1e12);
 
         syrup.burn(msg.sender, _amount);
         emit Withdraw(msg.sender, 0, _amount);
@@ -466,9 +466,9 @@ contract MasterChef is Ownable {
         user.rewardDebt = 0;
     }
 
-    // Safe gbirb transfer function, just in case if rounding error causes pool to not have enough GBIRBs.
-    function safeGBirbTransfer(address _to, uint256 _amount) internal {
-        syrup.safeGBirbTransfer(_to, _amount);
+    // Safe dbirb transfer function, just in case if rounding error causes pool to not have enough DBIRBs.
+    function safeDBirbTransfer(address _to, uint256 _amount) internal {
+        syrup.safeDBirbTransfer(_to, _amount);
     }
 
     // Update dev address by the previous dev.
@@ -485,21 +485,21 @@ contract MasterChef is Ownable {
     }
 
     // Update emission rate
-    function updateEmissionRate(uint256 _gbirbPerBlock) public onlyOwner {
-        require(_gbirbPerBlock <= MAXIMUM_EMISSON_RATE, "Too high");
+    function updateEmissionRate(uint256 _dbirbPerBlock) public onlyOwner {
+        require(_dbirbPerBlock <= MAXIMUM_EMISSON_RATE, "Too high");
         massUpdatePools();
-        gbirbPerBlock = _gbirbPerBlock;
-        emit UpdateEmissionRate(msg.sender, _gbirbPerBlock);
+        dbirbPerBlock = _dbirbPerBlock;
+        emit UpdateEmissionRate(msg.sender, _dbirbPerBlock);
     }
 
-    // Update the gbirb referral contract address by the owner
-    function setGBirbReferral(IGBirbReferral _gbirbReferral) public onlyOwner {
+    // Update the dbirb referral contract address by the owner
+    function setDBirbReferral(IDBirbReferral _dbirbReferral) public onlyOwner {
         require(
-            address(gbirbReferral) != address(_gbirbReferral),
+            address(dbirbReferral) != address(_dbirbReferral),
             "Already set"
         );
-        gbirbReferral = _gbirbReferral;
-        emit SetGBirbReferral(address(_gbirbReferral));
+        dbirbReferral = _dbirbReferral;
+        emit SetDBirbReferral(address(_dbirbReferral));
     }
 
     // Update referral commission rate by the owner
@@ -518,16 +518,16 @@ contract MasterChef is Ownable {
     // Pay referral commission to the referrer who referred this user.
     function payReferralCommission(address _user, uint256 _pending) internal {
         if (
-            address(gbirbReferral) != address(0) && referralCommissionRate > 0
+            address(dbirbReferral) != address(0) && referralCommissionRate > 0
         ) {
-            address referrer = gbirbReferral.getReferrer(_user);
+            address referrer = dbirbReferral.getReferrer(_user);
             uint256 commissionAmount = _pending.mul(referralCommissionRate).div(
                 10000
             );
 
             if (referrer != address(0) && commissionAmount > 0) {
-                gbirb.mint(referrer, commissionAmount);
-                gbirbReferral.recordReferralCommission(
+                dbirb.mint(referrer, commissionAmount);
+                dbirbReferral.recordReferralCommission(
                     referrer,
                     commissionAmount
                 );

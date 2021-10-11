@@ -2,7 +2,7 @@
 
 pragma solidity 0.6.12;
 
-interface IGBirbReferral {
+interface IDBirbReferral {
     /**
      * @dev Record referral.
      */

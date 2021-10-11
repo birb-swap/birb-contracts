@@ -821,18 +821,18 @@ interface IMasterChef {
 
     function leaveStaking(uint256 _amount) external;
 
-    function pendingGBirb(uint256 _pid, address _user) external view returns (uint256);
+    function pendingDBirb(uint256 _pid, address _user) external view returns (uint256);
 
     function userInfo(uint256 _pid, address _user) external view returns (uint256, uint256);
 
     function emergencyWithdraw(uint256 _pid) external;
 }
 
-// File: contracts/GBirbVault.sol
+// File: contracts/DBirbVault.sol
 
 pragma solidity 0.6.12;
 
-contract GBirbVault is Ownable, Pausable {
+contract DBirbVault is Ownable, Pausable {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
@@ -1071,7 +1071,7 @@ contract GBirbVault is Ownable, Pausable {
      * @return Expected reward to collect in CAKE
      */
     function calculateHarvestCakeRewards() external view returns (uint256) {
-        uint256 amount = IMasterChef(masterchef).pendingGBirb(0, address(this));
+        uint256 amount = IMasterChef(masterchef).pendingDBirb(0, address(this));
         amount = amount.add(available());
         uint256 currentCallFee = amount.mul(callFee).div(10000);
 
@@ -1083,7 +1083,7 @@ contract GBirbVault is Ownable, Pausable {
      * @return Returns total pending cake rewards
      */
     function calculateTotalPendingCakeRewards() external view returns (uint256) {
-        uint256 amount = IMasterChef(masterchef).pendingGBirb(0, address(this));
+        uint256 amount = IMasterChef(masterchef).pendingDBirb(0, address(this));
         amount = amount.add(available());
 
         return amount;

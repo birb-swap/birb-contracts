@@ -1013,7 +1013,7 @@ contract DBirbPoolInitializable is Ownable, ReentrancyGuard {
 
         _stakedToken.balanceOf(address(this));
         _rewardToken.balanceOf(address(this));
-        require(_stakedToken != _rewardToken, "stakedToken must be different from rewardToken");
+        // require(_stakedToken != _rewardToken, "stakedToken must be different from rewardToken");
         require(_startBlock > block.number, "startBlock cannot be in the past");
         require(_startBlock < _bonusEndBlock, "startBlock must be lower than endBlock");
 
@@ -1375,7 +1375,7 @@ contract DBirbPoolFactory is Ownable {
     event NewDBirbPoolContract(address indexed smartChef);
 
     uint16 public constant MAX_DEPOSIT_FEE = 2000;
-    
+
     constructor() public {
         //
     }

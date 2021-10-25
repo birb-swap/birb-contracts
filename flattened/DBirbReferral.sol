@@ -1,3 +1,100 @@
+// File: node_modules\@openzeppelin\contracts\utils\Context.sol
+
+
+
+pragma solidity >=0.6.0 <0.8.0;
+
+/*
+ * @dev Provides information about the current execution context, including the
+ * sender of the transaction and its data. While these are generally available
+ * via msg.sender and msg.data, they should not be accessed in such a direct
+ * manner, since when dealing with GSN meta-transactions the account sending and
+ * paying for execution may not be the actual sender (as far as an application
+ * is concerned).
+ *
+ * This contract is only required for intermediate, library-like contracts.
+ */
+abstract contract Context {
+    function _msgSender() internal view virtual returns (address payable) {
+        return msg.sender;
+    }
+
+    function _msgData() internal view virtual returns (bytes memory) {
+        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
+        return msg.data;
+    }
+}
+
+// File: @openzeppelin\contracts\access\Ownable.sol
+
+
+
+pragma solidity >=0.6.0 <0.8.0;
+
+/**
+ * @dev Contract module which provides a basic access control mechanism, where
+ * there is an account (an owner) that can be granted exclusive access to
+ * specific functions.
+ *
+ * By default, the owner account will be the one that deploys the contract. This
+ * can later be changed with {transferOwnership}.
+ *
+ * This module is used through inheritance. It will make available the modifier
+ * `onlyOwner`, which can be applied to your functions to restrict their use to
+ * the owner.
+ */
+abstract contract Ownable is Context {
+    address private _owner;
+
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+    /**
+     * @dev Initializes the contract setting the deployer as the initial owner.
+     */
+    constructor () internal {
+        address msgSender = _msgSender();
+        _owner = msgSender;
+        emit OwnershipTransferred(address(0), msgSender);
+    }
+
+    /**
+     * @dev Returns the address of the current owner.
+     */
+    function owner() public view virtual returns (address) {
+        return _owner;
+    }
+
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(owner() == _msgSender(), "Ownable: caller is not the owner");
+        _;
+    }
+
+    /**
+     * @dev Leaves the contract without owner. It will not be possible to call
+     * `onlyOwner` functions anymore. Can only be called by the current owner.
+     *
+     * NOTE: Renouncing ownership will leave the contract without an owner,
+     * thereby removing any functionality that is only available to the owner.
+     */
+    function renounceOwnership() public virtual onlyOwner {
+        emit OwnershipTransferred(_owner, address(0));
+        _owner = address(0);
+    }
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Can only be called by the current owner.
+     */
+    function transferOwnership(address newOwner) public virtual onlyOwner {
+        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        emit OwnershipTransferred(_owner, newOwner);
+        _owner = newOwner;
+    }
+}
+
 // File: contracts\libs\IBEP20.sol
 
 
@@ -634,103 +731,6 @@ interface IDBirbReferral {
     function getReferrer(address user) external view returns (address);
 }
 
-// File: node_modules\@openzeppelin\contracts\utils\Context.sol
-
-
-
-pragma solidity >=0.6.0 <0.8.0;
-
-/*
- * @dev Provides information about the current execution context, including the
- * sender of the transaction and its data. While these are generally available
- * via msg.sender and msg.data, they should not be accessed in such a direct
- * manner, since when dealing with GSN meta-transactions the account sending and
- * paying for execution may not be the actual sender (as far as an application
- * is concerned).
- *
- * This contract is only required for intermediate, library-like contracts.
- */
-abstract contract Context {
-    function _msgSender() internal view virtual returns (address payable) {
-        return msg.sender;
-    }
-
-    function _msgData() internal view virtual returns (bytes memory) {
-        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
-        return msg.data;
-    }
-}
-
-// File: @openzeppelin\contracts\access\Ownable.sol
-
-
-
-pragma solidity >=0.6.0 <0.8.0;
-
-/**
- * @dev Contract module which provides a basic access control mechanism, where
- * there is an account (an owner) that can be granted exclusive access to
- * specific functions.
- *
- * By default, the owner account will be the one that deploys the contract. This
- * can later be changed with {transferOwnership}.
- *
- * This module is used through inheritance. It will make available the modifier
- * `onlyOwner`, which can be applied to your functions to restrict their use to
- * the owner.
- */
-abstract contract Ownable is Context {
-    address private _owner;
-
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
-    /**
-     * @dev Initializes the contract setting the deployer as the initial owner.
-     */
-    constructor () internal {
-        address msgSender = _msgSender();
-        _owner = msgSender;
-        emit OwnershipTransferred(address(0), msgSender);
-    }
-
-    /**
-     * @dev Returns the address of the current owner.
-     */
-    function owner() public view virtual returns (address) {
-        return _owner;
-    }
-
-    /**
-     * @dev Throws if called by any account other than the owner.
-     */
-    modifier onlyOwner() {
-        require(owner() == _msgSender(), "Ownable: caller is not the owner");
-        _;
-    }
-
-    /**
-     * @dev Leaves the contract without owner. It will not be possible to call
-     * `onlyOwner` functions anymore. Can only be called by the current owner.
-     *
-     * NOTE: Renouncing ownership will leave the contract without an owner,
-     * thereby removing any functionality that is only available to the owner.
-     */
-    function renounceOwnership() public virtual onlyOwner {
-        emit OwnershipTransferred(_owner, address(0));
-        _owner = address(0);
-    }
-
-    /**
-     * @dev Transfers ownership of the contract to a new account (`newOwner`).
-     * Can only be called by the current owner.
-     */
-    function transferOwnership(address newOwner) public virtual onlyOwner {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
-        emit OwnershipTransferred(_owner, newOwner);
-        _owner = newOwner;
-    }
-}
-
 // File: contracts\DBirbReferral.sol
 
 pragma solidity 0.6.12;
@@ -741,6 +741,7 @@ pragma solidity 0.6.12;
 
 contract DBirbReferral is IDBirbReferral, Ownable {
     using SafeBEP20 for IBEP20;
+    using SafeMath for uint256;
 
     mapping(address => bool) public operators;
     mapping(address => address) public referrers; // user address => referrer address
@@ -748,46 +749,68 @@ contract DBirbReferral is IDBirbReferral, Ownable {
     mapping(address => uint256) public totalReferralCommissions; // referrer address => total referral commissions
 
     event ReferralRecorded(address indexed user, address indexed referrer);
-    event ReferralCommissionRecorded(address indexed referrer, uint256 commission);
+    event ReferralCommissionRecorded(
+        address indexed referrer,
+        uint256 commission
+    );
     event OperatorUpdated(address indexed operator, bool indexed status);
 
-    modifier onlyOperator {
+    modifier onlyOperator() {
         require(operators[msg.sender], "Operator: caller is not the operator");
         _;
     }
 
-    function recordReferral(address _user, address _referrer) public override onlyOperator {
-        if (_user != address(0)
-            && _referrer != address(0)
-            && _user != _referrer
-            && referrers[_user] == address(0)
+    function recordReferral(address _user, address _referrer)
+        public
+        override
+        onlyOperator
+    {
+        if (
+            _user != address(0) &&
+            _referrer != address(0) &&
+            _user != _referrer &&
+            referrers[_user] == address(0) &&
+            referrers[_user] == _referrer
         ) {
             referrers[_user] = _referrer;
-            referralsCount[_referrer] += 1;
+            referralsCount[_referrer] = referralsCount[_referrer].add(1);
             emit ReferralRecorded(_user, _referrer);
         }
     }
 
-    function recordReferralCommission(address _referrer, uint256 _commission) public override onlyOperator {
+    function recordReferralCommission(address _referrer, uint256 _commission)
+        public
+        override
+        onlyOperator
+    {
         if (_referrer != address(0) && _commission > 0) {
-            totalReferralCommissions[_referrer] += _commission;
+            totalReferralCommissions[_referrer] = totalReferralCommissions[
+                _referrer
+            ].add(_commission);
             emit ReferralCommissionRecorded(_referrer, _commission);
         }
     }
 
     // Get the referrer address that referred the user
-    function getReferrer(address _user) public override view returns (address) {
+    function getReferrer(address _user) public view override returns (address) {
         return referrers[_user];
     }
 
     // Update the status of the operator
-    function updateOperator(address _operator, bool _status) external onlyOwner {
+    function updateOperator(address _operator, bool _status)
+        external
+        onlyOwner
+    {
         operators[_operator] = _status;
         emit OperatorUpdated(_operator, _status);
     }
 
     // Owner can drain tokens that are sent here by mistake
-    function drainBEP20Token(IBEP20 _token, uint256 _amount, address _to) external onlyOwner {
+    function drainBEP20Token(
+        IBEP20 _token,
+        uint256 _amount,
+        address _to
+    ) external onlyOwner {
         _token.safeTransfer(_to, _amount);
     }
 }

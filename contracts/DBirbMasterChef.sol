@@ -1,19 +1,12 @@
 pragma solidity 0.6.12;
 
 import "@pancakeswap/pancake-swap-lib/contracts/math/SafeMath.sol";
-import "@pancakeswap/pancake-swap-lib/contracts/token/BEP20/IBEP20.sol";
-import "@pancakeswap/pancake-swap-lib/contracts/token/BEP20/SafeBEP20.sol";
 import "@pancakeswap/pancake-swap-lib/contracts/access/Ownable.sol";
 
 import "./libs/IDBirbReferral.sol";
+import "./libs/SafeBEP20.sol";
 import "./DBirbToken.sol";
 import "./DBirbSyrupBar.sol";
-
-// import "@nomiclabs/buidler/console.sol";
-
-interface IMigratorChef {
-    function migrate(IBEP20 token) external returns (IBEP20);
-}
 
 // DBirbMasterChef is the master of DBIRB. He can make DBIRB and he is a fair guy.
 //
@@ -68,9 +61,7 @@ contract DBirbMasterChef is Ownable {
 
     // Bonus muliplier for early dbirb makers.
     uint256 public BONUS_MULTIPLIER = 1;
-    // The migrator contract. It has a lot of power. Can only be set through governance (owner).
-    IMigratorChef public migrator;
-
+    
     // DBirb referral contract address.
     IDBirbReferral public dbirbReferral;
     // Referral commission rate in basis points.
@@ -158,7 +149,7 @@ contract DBirbMasterChef is Ownable {
         IBEP20 _lpToken,
         uint16 _depositFeeBP,
         bool _withUpdate
-    ) public onlyOwner nonDuplicated(_lpToken) {
+    ) external onlyOwner nonDuplicated(_lpToken) {
         require(
             _depositFeeBP <= MAX_DEPOSIT_FEE,
             "add: invalid deposit fee basis points"
@@ -192,7 +183,7 @@ contract DBirbMasterChef is Ownable {
         uint256 _allocPoint,
         uint16 _depositFeeBP,
         bool _withUpdate
-    ) public onlyOwner {
+    ) external onlyOwner {
         require(
             _depositFeeBP < MAX_DEPOSIT_FEE,
             "set: invalid deposit fee basis points"
@@ -225,24 +216,7 @@ contract DBirbMasterChef is Ownable {
             poolInfo[0].allocPoint = points;
         }
     }
-
-    // Set the migrator contract. Can only be called by the owner.
-    function setMigrator(IMigratorChef _migrator) public onlyOwner {
-        migrator = _migrator;
-    }
-
-    // Migrate lp token to another lp contract. Can be called by anyone. We trust that migrator contract is good.
-    function migrate(uint256 _pid) public {
-        require(address(migrator) != address(0), "migrate: no migrator");
-        PoolInfo storage pool = poolInfo[_pid];
-        IBEP20 lpToken = pool.lpToken;
-        uint256 bal = pool.lpSupply;
-        lpToken.safeApprove(address(migrator), bal);
-        IBEP20 newLpToken = migrator.migrate(lpToken);
-        require(bal == newLpToken.balanceOf(address(this)), "migrate: bad");
-        pool.lpToken = newLpToken;
-    }
-
+    
     // Return reward multiplier over the given _from to _to block.
     function getMultiplier(uint256 _from, uint256 _to)
         public
@@ -314,7 +288,7 @@ contract DBirbMasterChef is Ownable {
         uint256 _pid,
         uint256 _amount,
         address _referrer
-    ) public {
+    ) external {
         require(_pid != 0, "deposit DBIRB by staking");
 
         PoolInfo storage pool = poolInfo[_pid];
@@ -366,7 +340,7 @@ contract DBirbMasterChef is Ownable {
     }
 
     // Withdraw LP tokens from MasterChef.
-    function withdraw(uint256 _pid, uint256 _amount) public {
+    function withdraw(uint256 _pid, uint256 _amount) external {
         require(_pid != 0, "withdraw DBIRB by unstaking");
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
@@ -391,7 +365,7 @@ contract DBirbMasterChef is Ownable {
     }
 
     // Stake DBIRB tokens to MasterChef
-    function enterStaking(uint256 _amount) public {
+    function enterStaking(uint256 _amount) external {
         PoolInfo storage pool = poolInfo[0];
         UserInfo storage user = userInfo[0][msg.sender];
         updatePool(0);
@@ -431,7 +405,7 @@ contract DBirbMasterChef is Ownable {
     }
 
     // Withdraw DBIRB tokens from STAKING.
-    function leaveStaking(uint256 _amount) public {
+    function leaveStaking(uint256 _amount) external {
         PoolInfo storage pool = poolInfo[0];
         UserInfo storage user = userInfo[0][msg.sender];
         require(user.amount >= _amount, "withdraw: not good(user balance not enough)");
@@ -456,7 +430,7 @@ contract DBirbMasterChef is Ownable {
     }
 
     // Withdraw without caring about rewards. EMERGENCY ONLY.
-    function emergencyWithdraw(uint256 _pid) public {
+    function emergencyWithdraw(uint256 _pid) external {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         pool.lpSupply = pool.lpSupply.sub(user.amount);
@@ -472,20 +446,20 @@ contract DBirbMasterChef is Ownable {
     }
 
     // Update dev address by the previous dev.
-    function dev(address _devaddr) public {
+    function dev(address _devaddr) external {
         require(msg.sender == devaddr, "dev: wut?");
         devaddr = _devaddr;
         emit SetDevAddress(msg.sender, _devaddr);
     }
 
-    function setFeeAddress(address _feeAddress) public {
+    function setFeeAddress(address _feeAddress) external {
         require(msg.sender == feeAddress, "setFeeAddress: FORBIDDEN");
         feeAddress = _feeAddress;
         emit SetFeeAddress(msg.sender, _feeAddress);
     }
 
     // Update emission rate
-    function updateEmissionRate(uint256 _dbirbPerBlock) public onlyOwner {
+    function updateEmissionRate(uint256 _dbirbPerBlock) external onlyOwner {
         require(_dbirbPerBlock <= MAXIMUM_EMISSON_RATE, "Too high");
         massUpdatePools();
         dbirbPerBlock = _dbirbPerBlock;
@@ -493,7 +467,7 @@ contract DBirbMasterChef is Ownable {
     }
 
     // Update the dbirb referral contract address by the owner
-    function setDBirbReferral(IDBirbReferral _dbirbReferral) public onlyOwner {
+    function setDBirbReferral(IDBirbReferral _dbirbReferral) external onlyOwner {
         require(
             address(dbirbReferral) != address(_dbirbReferral),
             "Already set"
@@ -504,7 +478,7 @@ contract DBirbMasterChef is Ownable {
 
     // Update referral commission rate by the owner
     function setReferralCommissionRate(uint16 _referralCommissionRate)
-        public
+        external
         onlyOwner
     {
         require(

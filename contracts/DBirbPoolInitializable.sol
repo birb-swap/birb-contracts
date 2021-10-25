@@ -799,16 +799,16 @@ library SafeBEP20 {
     }
 }
 
-// File: contracts/GBirbPoolInitializable.sol
+// File: contracts/DBirbPoolInitializable.sol
 
 pragma solidity 0.6.12;
 
-contract GBirbPoolInitializable is Ownable, ReentrancyGuard {
+contract DBirbPoolInitializable is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     using SafeBEP20 for IBEP20;
 
     // The address of the smart chef factory
-    address public GBIRB_POOL_FACTORY;
+    address public DBIRB_POOL_FACTORY;
 
     // Whether a limit is set for users
     bool public hasUserLimit;
@@ -876,7 +876,7 @@ contract GBirbPoolInitializable is Ownable, ReentrancyGuard {
     event Withdraw(address indexed user, uint256 amount);
 
     constructor() public {
-        GBIRB_POOL_FACTORY = msg.sender;
+        DBIRB_POOL_FACTORY = msg.sender;
     }
 
     /**
@@ -903,12 +903,12 @@ contract GBirbPoolInitializable is Ownable, ReentrancyGuard {
         address _admin
     ) external {
         require(!isInitialized, "Already initialized");
-        require(msg.sender == GBIRB_POOL_FACTORY, "Not factory");
+        require(msg.sender == DBIRB_POOL_FACTORY, "Not factory");
         require(_feeAddress != address(0), "Invalid zero address");
 
         _stakedToken.balanceOf(address(this));
         _rewardToken.balanceOf(address(this));
-        require(_stakedToken != _rewardToken, "stakedToken must be different from rewardToken");
+        // require(_stakedToken != _rewardToken, "stakedToken must be different from rewardToken");
         require(_startBlock > block.number, "startBlock cannot be in the past");
         require(_startBlock < _bonusEndBlock, "startBlock must be lower than endBlock");
 

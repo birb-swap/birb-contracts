@@ -95,6 +95,32 @@ abstract contract Ownable is Context {
     }
 }
 
+// File: @openzeppelin\contracts\utils\Context.sol
+
+
+
+pragma solidity >=0.6.0 <0.8.0;
+
+/*
+ * @dev Provides information about the current execution context, including the
+ * sender of the transaction and its data. While these are generally available
+ * via msg.sender and msg.data, they should not be accessed in such a direct
+ * manner, since when dealing with GSN meta-transactions the account sending and
+ * paying for execution may not be the actual sender (as far as an application
+ * is concerned).
+ *
+ * This contract is only required for intermediate, library-like contracts.
+ */
+abstract contract Context {
+    function _msgSender() internal view virtual returns (address payable) {
+        return msg.sender;
+    }
+
+    function _msgData() internal view virtual returns (bytes memory) {
+        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
+        return msg.data;
+    }
+}
 
 // File: contracts\libs\IBEP20.sol
 
@@ -934,49 +960,24 @@ pragma solidity 0.6.12;
 
 // DBirbToken with Governance.
 contract DBirbToken is BEP20 {
-    // Transfer tax rate in basis points. (default 5%)
-    uint16 public transferTaxRate = 500;
-    // Max transfer tax rate: 10%.
-    uint16 public constant MAXIMUM_TRANSFER_TAX_RATE = 1000;
-    // Addresses that excluded from tax
-    mapping(address => bool) private _excludedFromTax;
-    // Treasury Address
-    address public treasuryAddress;
-
     // Burn address
     address public constant BURN_ADDRESS =
         0x000000000000000000000000000000000000dEaD;
 
-    // Max transfer amount rate in basis points. (default is 2% of total supply)
-    uint16 public maxTransferAmountRate = 200;
-    // Addresses that excluded from antiWhale
-    mapping(address => bool) private _excludedFromAntiWhale;
     // Max token balance per wallet. (default is 100k)
-    uint256 public maxBalancePerWallet = 10**23;
+    uint256 public maxBalancePerWallet = 100000 ether;
     // Addresses that excluded from antiFat :):):)
     mapping(address => bool) private _excludedFromAntiFat;
+    
+    uint256 public constant ALWAYS_ALLOWED_WALLET_BALANCE = 100 ether;
 
-    // The operator can only update the transfer tax rate
+    // The operator can only update the token settings
     address private _operator;
 
     // Events
     event OperatorTransferred(
         address indexed previousOperator,
         address indexed newOperator
-    );
-    event TreasuryAddressUpdated(
-        address indexed previousAddress,
-        address indexed newAddress
-    );
-    event TransferTaxRateUpdated(
-        address indexed operator,
-        uint256 previousRate,
-        uint256 newRate
-    );
-    event MaxTransferAmountRateUpdated(
-        address indexed operator,
-        uint256 previousRate,
-        uint256 newRate
     );
     event MaxBalancePerWalletUpdated(
         address indexed operator,
@@ -992,31 +993,12 @@ contract DBirbToken is BEP20 {
         _;
     }
 
-    modifier antiWhale(
-        address sender,
-        address recipient,
-        uint256 amount
-    ) {
-        if (maxTransferAmount() > 0) {
-            if (
-                _excludedFromAntiWhale[sender] == false &&
-                _excludedFromAntiWhale[recipient] == false
-            ) {
-                require(
-                    amount <= maxTransferAmount(),
-                    "DBIRB::antiWhale: Transfer amount exceeds the maxTransferAmount"
-                );
-            }
-        }
-        _;
-    }
-
     modifier antiFat(address recipient, uint256 amount) {
-        uint256 recipientBalance = balanceOf(address(this));
+        uint256 recipientBalance = balanceOf(recipient);
 
         if (_excludedFromAntiFat[recipient] == false) {
             require(
-                recipientBalance.add(amount) <= maxBalancePerWallet,
+                recipientBalance.add(amount) <= availableBalancePerWallet(),
                 "DBIRB::antiFat: Recipient balance exceeds the maxBalancePerWallet"
             );
         }
@@ -1024,116 +1006,26 @@ contract DBirbToken is BEP20 {
     }
 
     /**
-     * @dev Update the treasury address.
-     * Can only be called from the current treasury address.
+     * @dev Returns the max balance per wallet.
      */
-    function updateTreasuryAddress(address _treasuryAddress) external {
-        require(
-            treasuryAddress == msg.sender,
-            "DBIRB::updateTreasuryAddress: Only allowed from the current treasury address."
-        );
-        emit TreasuryAddressUpdated(treasuryAddress, _treasuryAddress);
-        treasuryAddress = _treasuryAddress;
-    }
-
-    /**
-     * @dev Update the transfer tax rate.
-     * Can only be called by the current operator.
-     */
-    function updateTransferTaxRate(uint16 _transferTaxRate)
-        external
-        onlyOperator
-    {
-        require(
-            _transferTaxRate <= MAXIMUM_TRANSFER_TAX_RATE,
-            "DBIRB::updateTransferTaxRate: Transfer tax rate must not exceed the maximum limit."
-        );
-        emit TransferTaxRateUpdated(
-            msg.sender,
-            transferTaxRate,
-            _transferTaxRate
-        );
-        transferTaxRate = _transferTaxRate;
-    }
-
-    /**
-     * @dev Returns the address is excluded from tax or not.
-     */
-    function isExcludedFromTax(address _account) public view returns (bool) {
-        return _excludedFromTax[_account];
-    }
-
-    /**
-     * @dev Exclude or include an address from tax.
-     * Can only be called by the current operator.
-     */
-    function excludeFromTax(address _account, bool _excluded)
-        external
-        onlyOperator
-    {
-        _excludedFromTax[_account] = _excluded;
-    }
-
-    /**
-     * @dev Returns the max transfer amount.
-     */
-    function maxTransferAmount() public view returns (uint256) {
-        return totalSupply().mul(maxTransferAmountRate).div(10000);
-    }
-
-    /**
-     * @dev Update the max transfer amount rate.
-     * Can only be called by the current operator.
-     */
-    function updateMaxTransferAmountRate(uint16 _maxTransferAmountRate)
-        external
-        onlyOperator
-    {
-        require(
-            _maxTransferAmountRate <= 10000,
-            "DBIRB::updateMaxTransferAmountRate: Max transfer amount rate must not exceed the maximum rate."
-        );
-        emit MaxTransferAmountRateUpdated(
-            msg.sender,
-            maxTransferAmountRate,
-            _maxTransferAmountRate
-        );
-        maxTransferAmountRate = _maxTransferAmountRate;
-    }
-
-    /**
-     * @dev Returns the address is excluded from antiWhale or not.
-     */
-    function isExcludedFromAntiWhale(address _account)
-        external
-        view
-        returns (bool)
-    {
-        return _excludedFromAntiWhale[_account];
-    }
-
-    /**
-     * @dev Exclude or include an address from antiWhale.
-     * Can only be called by the current operator.
-     */
-    function excludeFromAntiWhale(address _account, bool _excluded)
-        external
-        onlyOperator
-    {
-        _excludedFromAntiWhale[_account] = _excluded;
+    function availableBalancePerWallet() public view returns (uint256) {
+        if (maxBalancePerWallet < ALWAYS_ALLOWED_WALLET_BALANCE) {
+            return ALWAYS_ALLOWED_WALLET_BALANCE;
+        }
+        return maxBalancePerWallet;
     }
 
     /**
      * @dev Update the max balance per wallet.
      * Can only be called by the current operator.
      */
-    function updateMaxBalancePerWallet(uint16 _maxBalancePerWallet)
+    function updateMaxBalancePerWallet(uint256 _maxBalancePerWallet)
         external
         onlyOperator
     {
         require(
-            _maxBalancePerWallet <= 10000,
-            "DBIRB::updateMaxBalancePerWallet: Max transfer amount rate must not exceed the maximum rate."
+            _maxBalancePerWallet >= ALWAYS_ALLOWED_WALLET_BALANCE,
+            "DBIRB::updateMaxBalancePerWallet: Max balance per wallet must bigger than 10000 ether."
         );
         emit MaxBalancePerWalletUpdated(
             msg.sender,
@@ -1188,17 +1080,7 @@ contract DBirbToken is BEP20 {
     constructor() public BEP20("Diamond Birb", "DBIRB") {
         _operator = _msgSender();
         emit OperatorTransferred(address(0), _operator);
-        treasuryAddress = _msgSender();
-        emit TreasuryAddressUpdated(address(0), treasuryAddress);
-
-        _excludedFromTax[msg.sender] = true;
-        _excludedFromTax[address(0)] = true;
-        _excludedFromTax[BURN_ADDRESS] = true;
-
-        _excludedFromAntiWhale[msg.sender] = true;
-        _excludedFromAntiWhale[address(0)] = true;
-        _excludedFromAntiWhale[BURN_ADDRESS] = true;
-
+                
         _excludedFromAntiFat[msg.sender] = true;
         _excludedFromAntiFat[address(0)] = true;
         _excludedFromAntiFat[BURN_ADDRESS] = true;
@@ -1219,25 +1101,9 @@ contract DBirbToken is BEP20 {
         internal
         virtual
         override
-        antiWhale(sender, recipient, amount)
         antiFat(recipient, amount)
     {
-        if (isExcludedFromTax(sender) || isExcludedFromTax(recipient)) {
-            super._transfer(sender, recipient, amount);
-        } else {
-            uint256 taxAmount = amount.mul(transferTaxRate).div(10000);
-            uint256 sendAmount = amount.sub(taxAmount);
-            require(
-                amount == sendAmount + taxAmount,
-                "DBIRB::transfer: Tax value invalid"
-            );
-
-            if (taxAmount > 0) {
-                super._transfer(sender, treasuryAddress, taxAmount);
-            }
-            super._transfer(sender, recipient, sendAmount);
-            amount = sendAmount;
-        }
+        super._transfer(sender, recipient, amount);
     }
 
     // Copied and modified from YAM code:

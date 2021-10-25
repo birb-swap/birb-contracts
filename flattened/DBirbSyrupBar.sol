@@ -1,8 +1,8 @@
-// File: node_modules\@pancakeswap\pancake-swap-lib\contracts\GSN\Context.sol
+// File: node_modules\@openzeppelin\contracts\utils\Context.sol
 
 
 
-pragma solidity >=0.4.0;
+pragma solidity >=0.6.0 <0.8.0;
 
 /*
  * @dev Provides information about the current execution context, including the
@@ -14,27 +14,22 @@ pragma solidity >=0.4.0;
  *
  * This contract is only required for intermediate, library-like contracts.
  */
-contract Context {
-    // Empty internal constructor, to prevent people from mistakenly deploying
-    // an instance of this contract, which should be used via inheritance.
-    constructor() internal {}
-
-    function _msgSender() internal view returns (address payable) {
+abstract contract Context {
+    function _msgSender() internal view virtual returns (address payable) {
         return msg.sender;
     }
 
-    function _msgData() internal view returns (bytes memory) {
+    function _msgData() internal view virtual returns (bytes memory) {
         this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
         return msg.data;
     }
 }
 
-// File: node_modules\@pancakeswap\pancake-swap-lib\contracts\access\Ownable.sol
+// File: @openzeppelin\contracts\access\Ownable.sol
 
 
 
-pragma solidity >=0.4.0;
-
+pragma solidity >=0.6.0 <0.8.0;
 
 /**
  * @dev Contract module which provides a basic access control mechanism, where
@@ -48,7 +43,7 @@ pragma solidity >=0.4.0;
  * `onlyOwner`, which can be applied to your functions to restrict their use to
  * the owner.
  */
-contract Ownable is Context {
+abstract contract Ownable is Context {
     address private _owner;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
@@ -56,7 +51,7 @@ contract Ownable is Context {
     /**
      * @dev Initializes the contract setting the deployer as the initial owner.
      */
-    constructor() internal {
+    constructor () internal {
         address msgSender = _msgSender();
         _owner = msgSender;
         emit OwnershipTransferred(address(0), msgSender);
@@ -65,7 +60,7 @@ contract Ownable is Context {
     /**
      * @dev Returns the address of the current owner.
      */
-    function owner() public view returns (address) {
+    function owner() public view virtual returns (address) {
         return _owner;
     }
 
@@ -73,7 +68,7 @@ contract Ownable is Context {
      * @dev Throws if called by any account other than the owner.
      */
     modifier onlyOwner() {
-        require(_owner == _msgSender(), 'Ownable: caller is not the owner');
+        require(owner() == _msgSender(), "Ownable: caller is not the owner");
         _;
     }
 
@@ -84,7 +79,7 @@ contract Ownable is Context {
      * NOTE: Renouncing ownership will leave the contract without an owner,
      * thereby removing any functionality that is only available to the owner.
      */
-    function renounceOwnership() public onlyOwner {
+    function renounceOwnership() public virtual onlyOwner {
         emit OwnershipTransferred(_owner, address(0));
         _owner = address(0);
     }
@@ -93,21 +88,41 @@ contract Ownable is Context {
      * @dev Transfers ownership of the contract to a new account (`newOwner`).
      * Can only be called by the current owner.
      */
-    function transferOwnership(address newOwner) public onlyOwner {
-        _transferOwnership(newOwner);
-    }
-
-    /**
-     * @dev Transfers ownership of the contract to a new account (`newOwner`).
-     */
-    function _transferOwnership(address newOwner) internal {
-        require(newOwner != address(0), 'Ownable: new owner is the zero address');
+    function transferOwnership(address newOwner) public virtual onlyOwner {
+        require(newOwner != address(0), "Ownable: new owner is the zero address");
         emit OwnershipTransferred(_owner, newOwner);
         _owner = newOwner;
     }
 }
 
-// File: node_modules\@pancakeswap\pancake-swap-lib\contracts\token\BEP20\IBEP20.sol
+// File: @openzeppelin\contracts\utils\Context.sol
+
+
+
+pragma solidity >=0.6.0 <0.8.0;
+
+/*
+ * @dev Provides information about the current execution context, including the
+ * sender of the transaction and its data. While these are generally available
+ * via msg.sender and msg.data, they should not be accessed in such a direct
+ * manner, since when dealing with GSN meta-transactions the account sending and
+ * paying for execution may not be the actual sender (as far as an application
+ * is concerned).
+ *
+ * This contract is only required for intermediate, library-like contracts.
+ */
+abstract contract Context {
+    function _msgSender() internal view virtual returns (address payable) {
+        return msg.sender;
+    }
+
+    function _msgData() internal view virtual returns (bytes memory) {
+        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
+        return msg.data;
+    }
+}
+
+// File: contracts\libs\IBEP20.sol
 
 
 
@@ -208,11 +223,11 @@ interface IBEP20 {
     event Approval(address indexed owner, address indexed spender, uint256 value);
 }
 
-// File: node_modules\@pancakeswap\pancake-swap-lib\contracts\math\SafeMath.sol
+// File: @openzeppelin\contracts\math\SafeMath.sol
 
 
 
-pragma solidity >=0.4.0;
+pragma solidity >=0.6.0 <0.8.0;
 
 /**
  * @dev Wrappers over Solidity's arithmetic operations with added overflow
@@ -229,6 +244,62 @@ pragma solidity >=0.4.0;
  */
 library SafeMath {
     /**
+     * @dev Returns the addition of two unsigned integers, with an overflow flag.
+     *
+     * _Available since v3.4._
+     */
+    function tryAdd(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        uint256 c = a + b;
+        if (c < a) return (false, 0);
+        return (true, c);
+    }
+
+    /**
+     * @dev Returns the substraction of two unsigned integers, with an overflow flag.
+     *
+     * _Available since v3.4._
+     */
+    function trySub(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        if (b > a) return (false, 0);
+        return (true, a - b);
+    }
+
+    /**
+     * @dev Returns the multiplication of two unsigned integers, with an overflow flag.
+     *
+     * _Available since v3.4._
+     */
+    function tryMul(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
+        // benefit is lost if 'b' is also tested.
+        // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
+        if (a == 0) return (true, 0);
+        uint256 c = a * b;
+        if (c / a != b) return (false, 0);
+        return (true, c);
+    }
+
+    /**
+     * @dev Returns the division of two unsigned integers, with a division by zero flag.
+     *
+     * _Available since v3.4._
+     */
+    function tryDiv(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        if (b == 0) return (false, 0);
+        return (true, a / b);
+    }
+
+    /**
+     * @dev Returns the remainder of dividing two unsigned integers, with a division by zero flag.
+     *
+     * _Available since v3.4._
+     */
+    function tryMod(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        if (b == 0) return (false, 0);
+        return (true, a % b);
+    }
+
+    /**
      * @dev Returns the addition of two unsigned integers, reverting on
      * overflow.
      *
@@ -240,8 +311,7 @@ library SafeMath {
      */
     function add(uint256 a, uint256 b) internal pure returns (uint256) {
         uint256 c = a + b;
-        require(c >= a, 'SafeMath: addition overflow');
-
+        require(c >= a, "SafeMath: addition overflow");
         return c;
     }
 
@@ -256,28 +326,8 @@ library SafeMath {
      * - Subtraction cannot overflow.
      */
     function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-        return sub(a, b, 'SafeMath: subtraction overflow');
-    }
-
-    /**
-     * @dev Returns the subtraction of two unsigned integers, reverting with custom message on
-     * overflow (when the result is negative).
-     *
-     * Counterpart to Solidity's `-` operator.
-     *
-     * Requirements:
-     *
-     * - Subtraction cannot overflow.
-     */
-    function sub(
-        uint256 a,
-        uint256 b,
-        string memory errorMessage
-    ) internal pure returns (uint256) {
-        require(b <= a, errorMessage);
-        uint256 c = a - b;
-
-        return c;
+        require(b <= a, "SafeMath: subtraction overflow");
+        return a - b;
     }
 
     /**
@@ -291,21 +341,14 @@ library SafeMath {
      * - Multiplication cannot overflow.
      */
     function mul(uint256 a, uint256 b) internal pure returns (uint256) {
-        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
-        // benefit is lost if 'b' is also tested.
-        // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
-        if (a == 0) {
-            return 0;
-        }
-
+        if (a == 0) return 0;
         uint256 c = a * b;
-        require(c / a == b, 'SafeMath: multiplication overflow');
-
+        require(c / a == b, "SafeMath: multiplication overflow");
         return c;
     }
 
     /**
-     * @dev Returns the integer division of two unsigned integers. Reverts on
+     * @dev Returns the integer division of two unsigned integers, reverting on
      * division by zero. The result is rounded towards zero.
      *
      * Counterpart to Solidity's `/` operator. Note: this function uses a
@@ -317,36 +360,13 @@ library SafeMath {
      * - The divisor cannot be zero.
      */
     function div(uint256 a, uint256 b) internal pure returns (uint256) {
-        return div(a, b, 'SafeMath: division by zero');
-    }
-
-    /**
-     * @dev Returns the integer division of two unsigned integers. Reverts with custom message on
-     * division by zero. The result is rounded towards zero.
-     *
-     * Counterpart to Solidity's `/` operator. Note: this function uses a
-     * `revert` opcode (which leaves remaining gas untouched) while Solidity
-     * uses an invalid opcode to revert (consuming all remaining gas).
-     *
-     * Requirements:
-     *
-     * - The divisor cannot be zero.
-     */
-    function div(
-        uint256 a,
-        uint256 b,
-        string memory errorMessage
-    ) internal pure returns (uint256) {
-        require(b > 0, errorMessage);
-        uint256 c = a / b;
-        // assert(a == b * c + a % b); // There is no case in which this doesn't hold
-
-        return c;
+        require(b > 0, "SafeMath: division by zero");
+        return a / b;
     }
 
     /**
      * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
-     * Reverts when dividing by zero.
+     * reverting when dividing by zero.
      *
      * Counterpart to Solidity's `%` operator. This function uses a `revert`
      * opcode (which leaves remaining gas untouched) while Solidity uses an
@@ -357,12 +377,54 @@ library SafeMath {
      * - The divisor cannot be zero.
      */
     function mod(uint256 a, uint256 b) internal pure returns (uint256) {
-        return mod(a, b, 'SafeMath: modulo by zero');
+        require(b > 0, "SafeMath: modulo by zero");
+        return a % b;
+    }
+
+    /**
+     * @dev Returns the subtraction of two unsigned integers, reverting with custom message on
+     * overflow (when the result is negative).
+     *
+     * CAUTION: This function is deprecated because it requires allocating memory for the error
+     * message unnecessarily. For custom revert reasons use {trySub}.
+     *
+     * Counterpart to Solidity's `-` operator.
+     *
+     * Requirements:
+     *
+     * - Subtraction cannot overflow.
+     */
+    function sub(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+        require(b <= a, errorMessage);
+        return a - b;
+    }
+
+    /**
+     * @dev Returns the integer division of two unsigned integers, reverting with custom message on
+     * division by zero. The result is rounded towards zero.
+     *
+     * CAUTION: This function is deprecated because it requires allocating memory for the error
+     * message unnecessarily. For custom revert reasons use {tryDiv}.
+     *
+     * Counterpart to Solidity's `/` operator. Note: this function uses a
+     * `revert` opcode (which leaves remaining gas untouched) while Solidity
+     * uses an invalid opcode to revert (consuming all remaining gas).
+     *
+     * Requirements:
+     *
+     * - The divisor cannot be zero.
+     */
+    function div(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+        require(b > 0, errorMessage);
+        return a / b;
     }
 
     /**
      * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
-     * Reverts with custom message when dividing by zero.
+     * reverting with custom message when dividing by zero.
+     *
+     * CAUTION: This function is deprecated because it requires allocating memory for the error
+     * message unnecessarily. For custom revert reasons use {tryMod}.
      *
      * Counterpart to Solidity's `%` operator. This function uses a `revert`
      * opcode (which leaves remaining gas untouched) while Solidity uses an
@@ -372,39 +434,17 @@ library SafeMath {
      *
      * - The divisor cannot be zero.
      */
-    function mod(
-        uint256 a,
-        uint256 b,
-        string memory errorMessage
-    ) internal pure returns (uint256) {
-        require(b != 0, errorMessage);
+    function mod(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+        require(b > 0, errorMessage);
         return a % b;
-    }
-
-    function min(uint256 x, uint256 y) internal pure returns (uint256 z) {
-        z = x < y ? x : y;
-    }
-
-    // babylonian method (https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method)
-    function sqrt(uint256 y) internal pure returns (uint256 z) {
-        if (y > 3) {
-            z = y;
-            uint256 x = y / 2 + 1;
-            while (x < z) {
-                z = x;
-                x = (y / x + x) / 2;
-            }
-        } else if (y != 0) {
-            z = 1;
-        }
     }
 }
 
-// File: node_modules\@pancakeswap\pancake-swap-lib\contracts\utils\Address.sol
+// File: @openzeppelin\contracts\utils\Address.sol
 
 
 
-pragma solidity ^0.6.2;
+pragma solidity >=0.6.2 <0.8.0;
 
 /**
  * @dev Collection of functions related to the address type
@@ -428,16 +468,14 @@ library Address {
      * ====
      */
     function isContract(address account) internal view returns (bool) {
-        // According to EIP-1052, 0x0 is the value returned for not-yet created accounts
-        // and 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470 is returned
-        // for accounts without code, i.e. `keccak256('')`
-        bytes32 codehash;
-        bytes32 accountHash = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
+        // This method relies on extcodesize, which returns 0 for contracts in
+        // construction, since the code is only stored at the end of the
+        // constructor execution.
+
+        uint256 size;
         // solhint-disable-next-line no-inline-assembly
-        assembly {
-            codehash := extcodehash(account)
-        }
-        return (codehash != accountHash && codehash != 0x0);
+        assembly { size := extcodesize(account) }
+        return size > 0;
     }
 
     /**
@@ -457,11 +495,11 @@ library Address {
      * https://solidity.readthedocs.io/en/v0.5.11/security-considerations.html#use-the-checks-effects-interactions-pattern[checks-effects-interactions pattern].
      */
     function sendValue(address payable recipient, uint256 amount) internal {
-        require(address(this).balance >= amount, 'Address: insufficient balance');
+        require(address(this).balance >= amount, "Address: insufficient balance");
 
         // solhint-disable-next-line avoid-low-level-calls, avoid-call-value
-        (bool success, ) = recipient.call{value: amount}('');
-        require(success, 'Address: unable to send value, recipient may have reverted');
+        (bool success, ) = recipient.call{ value: amount }("");
+        require(success, "Address: unable to send value, recipient may have reverted");
     }
 
     /**
@@ -483,7 +521,7 @@ library Address {
      * _Available since v3.1._
      */
     function functionCall(address target, bytes memory data) internal returns (bytes memory) {
-        return functionCall(target, data, 'Address: low-level call failed');
+      return functionCall(target, data, "Address: low-level call failed");
     }
 
     /**
@@ -492,12 +530,8 @@ library Address {
      *
      * _Available since v3.1._
      */
-    function functionCall(
-        address target,
-        bytes memory data,
-        string memory errorMessage
-    ) internal returns (bytes memory) {
-        return _functionCallWithValue(target, data, 0, errorMessage);
+    function functionCall(address target, bytes memory data, string memory errorMessage) internal returns (bytes memory) {
+        return functionCallWithValue(target, data, 0, errorMessage);
     }
 
     /**
@@ -511,12 +545,8 @@ library Address {
      *
      * _Available since v3.1._
      */
-    function functionCallWithValue(
-        address target,
-        bytes memory data,
-        uint256 value
-    ) internal returns (bytes memory) {
-        return functionCallWithValue(target, data, value, 'Address: low-level call with value failed');
+    function functionCallWithValue(address target, bytes memory data, uint256 value) internal returns (bytes memory) {
+        return functionCallWithValue(target, data, value, "Address: low-level call with value failed");
     }
 
     /**
@@ -525,26 +555,64 @@ library Address {
      *
      * _Available since v3.1._
      */
-    function functionCallWithValue(
-        address target,
-        bytes memory data,
-        uint256 value,
-        string memory errorMessage
-    ) internal returns (bytes memory) {
-        require(address(this).balance >= value, 'Address: insufficient balance for call');
-        return _functionCallWithValue(target, data, value, errorMessage);
-    }
-
-    function _functionCallWithValue(
-        address target,
-        bytes memory data,
-        uint256 weiValue,
-        string memory errorMessage
-    ) private returns (bytes memory) {
-        require(isContract(target), 'Address: call to non-contract');
+    function functionCallWithValue(address target, bytes memory data, uint256 value, string memory errorMessage) internal returns (bytes memory) {
+        require(address(this).balance >= value, "Address: insufficient balance for call");
+        require(isContract(target), "Address: call to non-contract");
 
         // solhint-disable-next-line avoid-low-level-calls
-        (bool success, bytes memory returndata) = target.call{value: weiValue}(data);
+        (bool success, bytes memory returndata) = target.call{ value: value }(data);
+        return _verifyCallResult(success, returndata, errorMessage);
+    }
+
+    /**
+     * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],
+     * but performing a static call.
+     *
+     * _Available since v3.3._
+     */
+    function functionStaticCall(address target, bytes memory data) internal view returns (bytes memory) {
+        return functionStaticCall(target, data, "Address: low-level static call failed");
+    }
+
+    /**
+     * @dev Same as {xref-Address-functionCall-address-bytes-string-}[`functionCall`],
+     * but performing a static call.
+     *
+     * _Available since v3.3._
+     */
+    function functionStaticCall(address target, bytes memory data, string memory errorMessage) internal view returns (bytes memory) {
+        require(isContract(target), "Address: static call to non-contract");
+
+        // solhint-disable-next-line avoid-low-level-calls
+        (bool success, bytes memory returndata) = target.staticcall(data);
+        return _verifyCallResult(success, returndata, errorMessage);
+    }
+
+    /**
+     * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],
+     * but performing a delegate call.
+     *
+     * _Available since v3.4._
+     */
+    function functionDelegateCall(address target, bytes memory data) internal returns (bytes memory) {
+        return functionDelegateCall(target, data, "Address: low-level delegate call failed");
+    }
+
+    /**
+     * @dev Same as {xref-Address-functionCall-address-bytes-string-}[`functionCall`],
+     * but performing a delegate call.
+     *
+     * _Available since v3.4._
+     */
+    function functionDelegateCall(address target, bytes memory data, string memory errorMessage) internal returns (bytes memory) {
+        require(isContract(target), "Address: delegate call to non-contract");
+
+        // solhint-disable-next-line avoid-low-level-calls
+        (bool success, bytes memory returndata) = target.delegatecall(data);
+        return _verifyCallResult(success, returndata, errorMessage);
+    }
+
+    function _verifyCallResult(bool success, bytes memory returndata, string memory errorMessage) private pure returns(bytes memory) {
         if (success) {
             return returndata;
         } else {
@@ -564,7 +632,7 @@ library Address {
     }
 }
 
-// File: @pancakeswap\pancake-swap-lib\contracts\token\BEP20\BEP20.sol
+// File: contracts\libs\BEP20.sol
 
 
 
@@ -723,7 +791,7 @@ contract BEP20 is Context, IBEP20, Ownable {
         _approve(
             sender,
             _msgSender(),
-            _allowances[sender][_msgSender()].sub(amount, 'BEP20: transfer amount exceeds allowance')
+            _allowances[sender][_msgSender()].sub(amount, "BEP20: transfer amount exceeds allowance")
         );
         return true;
     }
@@ -763,7 +831,7 @@ contract BEP20 is Context, IBEP20, Ownable {
         _approve(
             _msgSender(),
             spender,
-            _allowances[_msgSender()][spender].sub(subtractedValue, 'BEP20: decreased allowance below zero')
+            _allowances[_msgSender()][spender].sub(subtractedValue, "BEP20: decreased allowance below zero")
         );
         return true;
     }
@@ -800,10 +868,10 @@ contract BEP20 is Context, IBEP20, Ownable {
         address recipient,
         uint256 amount
     ) internal virtual {
-        require(sender != address(0), 'BEP20: transfer from the zero address');
-        require(recipient != address(0), 'BEP20: transfer to the zero address');
+        require(sender != address(0), "BEP20: transfer from the zero address");
+        require(recipient != address(0), "BEP20: transfer to the zero address");
 
-        _balances[sender] = _balances[sender].sub(amount, 'BEP20: transfer amount exceeds balance');
+        _balances[sender] = _balances[sender].sub(amount, "BEP20: transfer amount exceeds balance");
         _balances[recipient] = _balances[recipient].add(amount);
         emit Transfer(sender, recipient, amount);
     }
@@ -818,7 +886,7 @@ contract BEP20 is Context, IBEP20, Ownable {
      * - `to` cannot be the zero address.
      */
     function _mint(address account, uint256 amount) internal {
-        require(account != address(0), 'BEP20: mint to the zero address');
+        require(account != address(0), "BEP20: mint to the zero address");
 
         _totalSupply = _totalSupply.add(amount);
         _balances[account] = _balances[account].add(amount);
@@ -837,9 +905,9 @@ contract BEP20 is Context, IBEP20, Ownable {
      * - `account` must have at least `amount` tokens.
      */
     function _burn(address account, uint256 amount) internal {
-        require(account != address(0), 'BEP20: burn from the zero address');
+        require(account != address(0), "BEP20: burn from the zero address");
 
-        _balances[account] = _balances[account].sub(amount, 'BEP20: burn amount exceeds balance');
+        _balances[account] = _balances[account].sub(amount, "BEP20: burn amount exceeds balance");
         _totalSupply = _totalSupply.sub(amount);
         emit Transfer(account, address(0), amount);
     }
@@ -862,8 +930,8 @@ contract BEP20 is Context, IBEP20, Ownable {
         address spender,
         uint256 amount
     ) internal {
-        require(owner != address(0), 'BEP20: approve from the zero address');
-        require(spender != address(0), 'BEP20: approve to the zero address');
+        require(owner != address(0), "BEP20: approve from the zero address");
+        require(spender != address(0), "BEP20: approve to the zero address");
 
         _allowances[owner][spender] = amount;
         emit Approval(owner, spender, amount);
@@ -880,12 +948,10 @@ contract BEP20 is Context, IBEP20, Ownable {
         _approve(
             account,
             _msgSender(),
-            _allowances[account][_msgSender()].sub(amount, 'BEP20: burn amount exceeds allowance')
+            _allowances[account][_msgSender()].sub(amount, "BEP20: burn amount exceeds allowance")
         );
     }
 }
-
-
 
 // File: contracts\DBirbToken.sol
 
@@ -894,49 +960,24 @@ pragma solidity 0.6.12;
 
 // DBirbToken with Governance.
 contract DBirbToken is BEP20 {
-    // Transfer tax rate in basis points. (default 5%)
-    uint16 public transferTaxRate = 500;
-    // Max transfer tax rate: 10%.
-    uint16 public constant MAXIMUM_TRANSFER_TAX_RATE = 1000;
-    // Addresses that excluded from tax
-    mapping(address => bool) private _excludedFromTax;
-    // Treasury Address
-    address public treasuryAddress;
-
     // Burn address
     address public constant BURN_ADDRESS =
         0x000000000000000000000000000000000000dEaD;
 
-    // Max transfer amount rate in basis points. (default is 2% of total supply)
-    uint16 public maxTransferAmountRate = 200;
-    // Addresses that excluded from antiWhale
-    mapping(address => bool) private _excludedFromAntiWhale;
     // Max token balance per wallet. (default is 100k)
-    uint256 public maxBalancePerWallet = 10**23;
+    uint256 public maxBalancePerWallet = 100000 ether;
     // Addresses that excluded from antiFat :):):)
     mapping(address => bool) private _excludedFromAntiFat;
+    
+    uint256 public constant ALWAYS_ALLOWED_WALLET_BALANCE = 100 ether;
 
-    // The operator can only update the transfer tax rate
+    // The operator can only update the token settings
     address private _operator;
 
     // Events
     event OperatorTransferred(
         address indexed previousOperator,
         address indexed newOperator
-    );
-    event TreasuryAddressUpdated(
-        address indexed previousAddress,
-        address indexed newAddress
-    );
-    event TransferTaxRateUpdated(
-        address indexed operator,
-        uint256 previousRate,
-        uint256 newRate
-    );
-    event MaxTransferAmountRateUpdated(
-        address indexed operator,
-        uint256 previousRate,
-        uint256 newRate
     );
     event MaxBalancePerWalletUpdated(
         address indexed operator,
@@ -952,31 +993,12 @@ contract DBirbToken is BEP20 {
         _;
     }
 
-    modifier antiWhale(
-        address sender,
-        address recipient,
-        uint256 amount
-    ) {
-        if (maxTransferAmount() > 0) {
-            if (
-                _excludedFromAntiWhale[sender] == false &&
-                _excludedFromAntiWhale[recipient] == false
-            ) {
-                require(
-                    amount <= maxTransferAmount(),
-                    "DBIRB::antiWhale: Transfer amount exceeds the maxTransferAmount"
-                );
-            }
-        }
-        _;
-    }
-
     modifier antiFat(address recipient, uint256 amount) {
         uint256 recipientBalance = balanceOf(address(this));
 
         if (_excludedFromAntiFat[recipient] == false) {
             require(
-                recipientBalance.add(amount) <= maxBalancePerWallet,
+                recipientBalance.add(amount) <= availableBalancePerWallet(),
                 "DBIRB::antiFat: Recipient balance exceeds the maxBalancePerWallet"
             );
         }
@@ -984,103 +1006,13 @@ contract DBirbToken is BEP20 {
     }
 
     /**
-     * @dev Update the treasury address.
-     * Can only be called from the current treasury address.
+     * @dev Returns the max balance per wallet.
      */
-    function updateTreasuryAddress(address _treasuryAddress) external {
-        require(
-            treasuryAddress == msg.sender,
-            "DBIRB::updateTreasuryAddress: Only allowed from the current treasury address."
-        );
-        emit TreasuryAddressUpdated(treasuryAddress, _treasuryAddress);
-        treasuryAddress = _treasuryAddress;
-    }
-
-    /**
-     * @dev Update the transfer tax rate.
-     * Can only be called by the current operator.
-     */
-    function updateTransferTaxRate(uint16 _transferTaxRate)
-        external
-        onlyOperator
-    {
-        require(
-            _transferTaxRate <= MAXIMUM_TRANSFER_TAX_RATE,
-            "DBIRB::updateTransferTaxRate: Transfer tax rate must not exceed the maximum limit."
-        );
-        emit TransferTaxRateUpdated(
-            msg.sender,
-            transferTaxRate,
-            _transferTaxRate
-        );
-        transferTaxRate = _transferTaxRate;
-    }
-
-    /**
-     * @dev Returns the address is excluded from tax or not.
-     */
-    function isExcludedFromTax(address _account) public view returns (bool) {
-        return _excludedFromTax[_account];
-    }
-
-    /**
-     * @dev Exclude or include an address from tax.
-     * Can only be called by the current operator.
-     */
-    function excludeFromTax(address _account, bool _excluded)
-        external
-        onlyOperator
-    {
-        _excludedFromTax[_account] = _excluded;
-    }
-
-    /**
-     * @dev Returns the max transfer amount.
-     */
-    function maxTransferAmount() public view returns (uint256) {
-        return totalSupply().mul(maxTransferAmountRate).div(10000);
-    }
-
-    /**
-     * @dev Update the max transfer amount rate.
-     * Can only be called by the current operator.
-     */
-    function updateMaxTransferAmountRate(uint16 _maxTransferAmountRate)
-        external
-        onlyOperator
-    {
-        require(
-            _maxTransferAmountRate <= 10000,
-            "DBIRB::updateMaxTransferAmountRate: Max transfer amount rate must not exceed the maximum rate."
-        );
-        emit MaxTransferAmountRateUpdated(
-            msg.sender,
-            maxTransferAmountRate,
-            _maxTransferAmountRate
-        );
-        maxTransferAmountRate = _maxTransferAmountRate;
-    }
-
-    /**
-     * @dev Returns the address is excluded from antiWhale or not.
-     */
-    function isExcludedFromAntiWhale(address _account)
-        external
-        view
-        returns (bool)
-    {
-        return _excludedFromAntiWhale[_account];
-    }
-
-    /**
-     * @dev Exclude or include an address from antiWhale.
-     * Can only be called by the current operator.
-     */
-    function excludeFromAntiWhale(address _account, bool _excluded)
-        external
-        onlyOperator
-    {
-        _excludedFromAntiWhale[_account] = _excluded;
+    function availableBalancePerWallet() public view returns (uint256) {
+        if (maxBalancePerWallet < ALWAYS_ALLOWED_WALLET_BALANCE) {
+            return ALWAYS_ALLOWED_WALLET_BALANCE;
+        }
+        return maxBalancePerWallet;
     }
 
     /**
@@ -1092,8 +1024,8 @@ contract DBirbToken is BEP20 {
         onlyOperator
     {
         require(
-            _maxBalancePerWallet <= 10000,
-            "DBIRB::updateMaxBalancePerWallet: Max transfer amount rate must not exceed the maximum rate."
+            _maxBalancePerWallet >= ALWAYS_ALLOWED_WALLET_BALANCE,
+            "DBIRB::updateMaxBalancePerWallet: Max balance per wallet must bigger than 10000 ether."
         );
         emit MaxBalancePerWalletUpdated(
             msg.sender,
@@ -1148,17 +1080,7 @@ contract DBirbToken is BEP20 {
     constructor() public BEP20("Diamond Birb", "DBIRB") {
         _operator = _msgSender();
         emit OperatorTransferred(address(0), _operator);
-        treasuryAddress = _msgSender();
-        emit TreasuryAddressUpdated(address(0), treasuryAddress);
-
-        _excludedFromTax[msg.sender] = true;
-        _excludedFromTax[address(0)] = true;
-        _excludedFromTax[BURN_ADDRESS] = true;
-
-        _excludedFromAntiWhale[msg.sender] = true;
-        _excludedFromAntiWhale[address(0)] = true;
-        _excludedFromAntiWhale[BURN_ADDRESS] = true;
-
+                
         _excludedFromAntiFat[msg.sender] = true;
         _excludedFromAntiFat[address(0)] = true;
         _excludedFromAntiFat[BURN_ADDRESS] = true;
@@ -1179,25 +1101,9 @@ contract DBirbToken is BEP20 {
         internal
         virtual
         override
-        antiWhale(sender, recipient, amount)
         antiFat(recipient, amount)
     {
-        if (isExcludedFromTax(sender) || isExcludedFromTax(recipient)) {
-            super._transfer(sender, recipient, amount);
-        } else {
-            uint256 taxAmount = amount.mul(transferTaxRate).div(10000);
-            uint256 sendAmount = amount.sub(taxAmount);
-            require(
-                amount == sendAmount + taxAmount,
-                "DBIRB::transfer: Tax value invalid"
-            );
-
-            if (taxAmount > 0) {
-                super._transfer(sender, treasuryAddress, taxAmount);
-            }
-            super._transfer(sender, recipient, sendAmount);
-            amount = sendAmount;
-        }
+        super._transfer(sender, recipient, amount);
     }
 
     // Copied and modified from YAM code:
@@ -1456,7 +1362,6 @@ contract DBirbToken is BEP20 {
 // File: contracts\DBirbSyrupBar.sol
 
 pragma solidity 0.6.12;
-
 
 
 // DBirbSyrupBar with Governance.

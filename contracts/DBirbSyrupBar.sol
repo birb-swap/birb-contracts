@@ -1,7 +1,5 @@
 pragma solidity 0.6.12;
 
-import "@pancakeswap/pancake-swap-lib/contracts/token/BEP20/BEP20.sol";
-
 import "./DBirbToken.sol";
 
 // DBirbSyrupBar with Governance.

@@ -1,6 +1,6 @@
 // File: node_modules\@openzeppelin\contracts\utils\Context.sol
 
-
+// SPDX-License-Identifier: MIT
 
 pragma solidity >=0.6.0 <0.8.0;
 
@@ -708,13 +708,13 @@ library SafeBEP20 {
     }
 }
 
-// File: contracts\libs\IDBirbReferral.sol
+// File: contracts\libs\IBirbReferral.sol
 
 
 
 pragma solidity 0.6.12;
 
-interface IDBirbReferral {
+interface IBirbReferral {
     /**
      * @dev Record referral.
      */
@@ -723,7 +723,8 @@ interface IDBirbReferral {
     /**
      * @dev Record referral commission.
      */
-    function recordReferralCommission(address referrer, uint256 commission) external;
+    function recordReferralCommission(address referrer, uint256 commission)
+        external;
 
     /**
      * @dev Get the referrer address that referred the user.
@@ -731,7 +732,7 @@ interface IDBirbReferral {
     function getReferrer(address user) external view returns (address);
 }
 
-// File: contracts\DBirbReferral.sol
+// File: contracts\BirbReferral.sol
 
 pragma solidity 0.6.12;
 
@@ -739,19 +740,22 @@ pragma solidity 0.6.12;
 
 
 
-contract DBirbReferral is IDBirbReferral, Ownable {
+contract BirbReferral is IBirbReferral, Ownable {
     using SafeBEP20 for IBEP20;
     using SafeMath for uint256;
 
+    uint256 totalReferralCommissions = 0; // Total referral commissions
     mapping(address => bool) public operators;
     mapping(address => address) public referrers; // user address => referrer address
     mapping(address => uint256) public referralsCount; // referrer address => referrals count
-    mapping(address => uint256) public totalReferralCommissions; // referrer address => total referral commissions
+    mapping(address => uint256) public referralCommissions; // referrer address => referral commissions per user
 
     event ReferralRecorded(address indexed user, address indexed referrer);
-    event ReferralCommissionRecorded(
+    event ReferralCommissionUpdated(
         address indexed referrer,
-        uint256 commission
+        uint256 commission,
+        uint256 commissionSum,
+        uint256 totalCommission
     );
     event OperatorUpdated(address indexed operator, bool indexed status);
 
@@ -769,8 +773,7 @@ contract DBirbReferral is IDBirbReferral, Ownable {
             _user != address(0) &&
             _referrer != address(0) &&
             _user != _referrer &&
-            referrers[_user] == address(0) &&
-            referrers[_user] == _referrer
+            referrers[_user] == address(0)
         ) {
             referrers[_user] = _referrer;
             referralsCount[_referrer] = referralsCount[_referrer].add(1);
@@ -784,15 +787,23 @@ contract DBirbReferral is IDBirbReferral, Ownable {
         onlyOperator
     {
         if (_referrer != address(0) && _commission > 0) {
-            totalReferralCommissions[_referrer] = totalReferralCommissions[
-                _referrer
-            ].add(_commission);
-            emit ReferralCommissionRecorded(_referrer, _commission);
+            referralCommissions[_referrer] = referralCommissions[_referrer].add(
+                _commission
+            );
+            totalReferralCommissions = totalReferralCommissions.add(
+                _commission
+            );
+            emit ReferralCommissionUpdated(
+                _referrer,
+                _commission,
+                referralCommissions[_referrer],
+                totalReferralCommissions
+            );
         }
     }
 
     // Get the referrer address that referred the user
-    function getReferrer(address _user) public view override returns (address) {
+    function getReferrer(address _user) public override view returns (address) {
         return referrers[_user];
     }
 

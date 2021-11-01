@@ -1,6 +1,6 @@
 /**
  *Submitted for verification at BscScan.com on 2021-05-05
-*/
+ */
 
 // File: @openzeppelin/contracts/utils/Context.sol
 
@@ -48,7 +48,10 @@ pragma solidity >=0.6.0 <0.8.0;
 abstract contract Ownable is Context {
     address private _owner;
 
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
 
     /**
      * @dev Initializes the contract setting the deployer as the initial owner.
@@ -91,10 +94,121 @@ abstract contract Ownable is Context {
      * Can only be called by the current owner.
      */
     function transferOwnership(address newOwner) public virtual onlyOwner {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        require(
+            newOwner != address(0),
+            "Ownable: new owner is the zero address"
+        );
         emit OwnershipTransferred(_owner, newOwner);
         _owner = newOwner;
     }
+}
+
+// File: bsc-library/contracts/IBEP20.sol
+
+pragma solidity >=0.4.0;
+
+interface IBEP20 {
+    /**
+     * @dev Returns the amount of tokens in existence.
+     */
+    function totalSupply() external view returns (uint256);
+
+    /**
+     * @dev Returns the token decimals.
+     */
+    function decimals() external view returns (uint8);
+
+    /**
+     * @dev Returns the token symbol.
+     */
+    function symbol() external view returns (string memory);
+
+    /**
+     * @dev Returns the token name.
+     */
+    function name() external view returns (string memory);
+
+    /**
+     * @dev Returns the bep token owner.
+     */
+    function getOwner() external view returns (address);
+
+    /**
+     * @dev Returns the amount of tokens owned by `account`.
+     */
+    function balanceOf(address account) external view returns (uint256);
+
+    /**
+     * @dev Moves `amount` tokens from the caller's account to `recipient`.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits a {Transfer} event.
+     */
+    function transfer(address recipient, uint256 amount)
+        external
+        returns (bool);
+
+    /**
+     * @dev Returns the remaining number of tokens that `spender` will be
+     * allowed to spend on behalf of `owner` through {transferFrom}. This is
+     * zero by default.
+     *
+     * This value changes when {approve} or {transferFrom} are called.
+     */
+    function allowance(address _owner, address spender)
+        external
+        view
+        returns (uint256);
+
+    /**
+     * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * IMPORTANT: Beware that changing an allowance with this method brings the risk
+     * that someone may use both the old and the new allowance by unfortunate
+     * transaction ordering. One possible solution to mitigate this race
+     * condition is to first reduce the spender's allowance to 0 and set the
+     * desired value afterwards:
+     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
+     *
+     * Emits an {Approval} event.
+     */
+    function approve(address spender, uint256 amount) external returns (bool);
+
+    /**
+     * @dev Moves `amount` tokens from `sender` to `recipient` using the
+     * allowance mechanism. `amount` is then deducted from the caller's
+     * allowance.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits a {Transfer} event.
+     */
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
+
+    /**
+     * @dev Emitted when `value` tokens are moved from one account (`from`) to
+     * another (`to`).
+     *
+     * Note that `value` may be zero.
+     */
+    event Transfer(address indexed from, address indexed to, uint256 value);
+
+    /**
+     * @dev Emitted when the allowance of a `spender` for an `owner` is set by
+     * a call to {approve}. `value` is the new allowance.
+     */
+    event Approval(
+        address indexed owner,
+        address indexed spender,
+        uint256 value
+    );
 }
 
 // File: @openzeppelin/contracts/math/SafeMath.sol
@@ -120,7 +234,11 @@ library SafeMath {
      *
      * _Available since v3.4._
      */
-    function tryAdd(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+    function tryAdd(uint256 a, uint256 b)
+        internal
+        pure
+        returns (bool, uint256)
+    {
         uint256 c = a + b;
         if (c < a) return (false, 0);
         return (true, c);
@@ -131,7 +249,11 @@ library SafeMath {
      *
      * _Available since v3.4._
      */
-    function trySub(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+    function trySub(uint256 a, uint256 b)
+        internal
+        pure
+        returns (bool, uint256)
+    {
         if (b > a) return (false, 0);
         return (true, a - b);
     }
@@ -141,7 +263,11 @@ library SafeMath {
      *
      * _Available since v3.4._
      */
-    function tryMul(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+    function tryMul(uint256 a, uint256 b)
+        internal
+        pure
+        returns (bool, uint256)
+    {
         // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
         // benefit is lost if 'b' is also tested.
         // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
@@ -156,7 +282,11 @@ library SafeMath {
      *
      * _Available since v3.4._
      */
-    function tryDiv(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+    function tryDiv(uint256 a, uint256 b)
+        internal
+        pure
+        returns (bool, uint256)
+    {
         if (b == 0) return (false, 0);
         return (true, a / b);
     }
@@ -166,7 +296,11 @@ library SafeMath {
      *
      * _Available since v3.4._
      */
-    function tryMod(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+    function tryMod(uint256 a, uint256 b)
+        internal
+        pure
+        returns (bool, uint256)
+    {
         if (b == 0) return (false, 0);
         return (true, a % b);
     }
@@ -387,105 +521,6 @@ abstract contract ReentrancyGuard {
     }
 }
 
-// File: bsc-library/contracts/IBEP20.sol
-
-pragma solidity >=0.4.0;
-
-interface IBEP20 {
-    /**
-     * @dev Returns the amount of tokens in existence.
-     */
-    function totalSupply() external view returns (uint256);
-
-    /**
-     * @dev Returns the token decimals.
-     */
-    function decimals() external view returns (uint8);
-
-    /**
-     * @dev Returns the token symbol.
-     */
-    function symbol() external view returns (string memory);
-
-    /**
-     * @dev Returns the token name.
-     */
-    function name() external view returns (string memory);
-
-    /**
-     * @dev Returns the bep token owner.
-     */
-    function getOwner() external view returns (address);
-
-    /**
-     * @dev Returns the amount of tokens owned by `account`.
-     */
-    function balanceOf(address account) external view returns (uint256);
-
-    /**
-     * @dev Moves `amount` tokens from the caller's account to `recipient`.
-     *
-     * Returns a boolean value indicating whether the operation succeeded.
-     *
-     * Emits a {Transfer} event.
-     */
-    function transfer(address recipient, uint256 amount) external returns (bool);
-
-    /**
-     * @dev Returns the remaining number of tokens that `spender` will be
-     * allowed to spend on behalf of `owner` through {transferFrom}. This is
-     * zero by default.
-     *
-     * This value changes when {approve} or {transferFrom} are called.
-     */
-    function allowance(address _owner, address spender) external view returns (uint256);
-
-    /**
-     * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.
-     *
-     * Returns a boolean value indicating whether the operation succeeded.
-     *
-     * IMPORTANT: Beware that changing an allowance with this method brings the risk
-     * that someone may use both the old and the new allowance by unfortunate
-     * transaction ordering. One possible solution to mitigate this race
-     * condition is to first reduce the spender's allowance to 0 and set the
-     * desired value afterwards:
-     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
-     *
-     * Emits an {Approval} event.
-     */
-    function approve(address spender, uint256 amount) external returns (bool);
-
-    /**
-     * @dev Moves `amount` tokens from `sender` to `recipient` using the
-     * allowance mechanism. `amount` is then deducted from the caller's
-     * allowance.
-     *
-     * Returns a boolean value indicating whether the operation succeeded.
-     *
-     * Emits a {Transfer} event.
-     */
-    function transferFrom(
-        address sender,
-        address recipient,
-        uint256 amount
-    ) external returns (bool);
-
-    /**
-     * @dev Emitted when `value` tokens are moved from one account (`from`) to
-     * another (`to`).
-     *
-     * Note that `value` may be zero.
-     */
-    event Transfer(address indexed from, address indexed to, uint256 value);
-
-    /**
-     * @dev Emitted when the allowance of a `spender` for an `owner` is set by
-     * a call to {approve}. `value` is the new allowance.
-     */
-    event Approval(address indexed owner, address indexed spender, uint256 value);
-}
-
 // File: @openzeppelin/contracts/utils/Address.sol
 
 pragma solidity >=0.6.2 <0.8.0;
@@ -541,11 +576,17 @@ library Address {
      * https://solidity.readthedocs.io/en/v0.5.11/security-considerations.html#use-the-checks-effects-interactions-pattern[checks-effects-interactions pattern].
      */
     function sendValue(address payable recipient, uint256 amount) internal {
-        require(address(this).balance >= amount, "Address: insufficient balance");
+        require(
+            address(this).balance >= amount,
+            "Address: insufficient balance"
+        );
 
         // solhint-disable-next-line avoid-low-level-calls, avoid-call-value
         (bool success, ) = recipient.call{value: amount}("");
-        require(success, "Address: unable to send value, recipient may have reverted");
+        require(
+            success,
+            "Address: unable to send value, recipient may have reverted"
+        );
     }
 
     /**
@@ -566,7 +607,10 @@ library Address {
      *
      * _Available since v3.1._
      */
-    function functionCall(address target, bytes memory data) internal returns (bytes memory) {
+    function functionCall(address target, bytes memory data)
+        internal
+        returns (bytes memory)
+    {
         return functionCall(target, data, "Address: low-level call failed");
     }
 
@@ -600,7 +644,13 @@ library Address {
         bytes memory data,
         uint256 value
     ) internal returns (bytes memory) {
-        return functionCallWithValue(target, data, value, "Address: low-level call with value failed");
+        return
+            functionCallWithValue(
+                target,
+                data,
+                value,
+                "Address: low-level call with value failed"
+            );
     }
 
     /**
@@ -615,11 +665,16 @@ library Address {
         uint256 value,
         string memory errorMessage
     ) internal returns (bytes memory) {
-        require(address(this).balance >= value, "Address: insufficient balance for call");
+        require(
+            address(this).balance >= value,
+            "Address: insufficient balance for call"
+        );
         require(isContract(target), "Address: call to non-contract");
 
         // solhint-disable-next-line avoid-low-level-calls
-        (bool success, bytes memory returndata) = target.call{value: value}(data);
+        (bool success, bytes memory returndata) = target.call{value: value}(
+            data
+        );
         return _verifyCallResult(success, returndata, errorMessage);
     }
 
@@ -629,8 +684,17 @@ library Address {
      *
      * _Available since v3.3._
      */
-    function functionStaticCall(address target, bytes memory data) internal view returns (bytes memory) {
-        return functionStaticCall(target, data, "Address: low-level static call failed");
+    function functionStaticCall(address target, bytes memory data)
+        internal
+        view
+        returns (bytes memory)
+    {
+        return
+            functionStaticCall(
+                target,
+                data,
+                "Address: low-level static call failed"
+            );
     }
 
     /**
@@ -657,8 +721,16 @@ library Address {
      *
      * _Available since v3.4._
      */
-    function functionDelegateCall(address target, bytes memory data) internal returns (bytes memory) {
-        return functionDelegateCall(target, data, "Address: low-level delegate call failed");
+    function functionDelegateCall(address target, bytes memory data)
+        internal
+        returns (bytes memory)
+    {
+        return
+            functionDelegateCall(
+                target,
+                data,
+                "Address: low-level delegate call failed"
+            );
     }
 
     /**
@@ -725,7 +797,10 @@ library SafeBEP20 {
         address to,
         uint256 value
     ) internal {
-        _callOptionalReturn(token, abi.encodeWithSelector(token.transfer.selector, to, value));
+        _callOptionalReturn(
+            token,
+            abi.encodeWithSelector(token.transfer.selector, to, value)
+        );
     }
 
     function safeTransferFrom(
@@ -734,7 +809,10 @@ library SafeBEP20 {
         address to,
         uint256 value
     ) internal {
-        _callOptionalReturn(token, abi.encodeWithSelector(token.transferFrom.selector, from, to, value));
+        _callOptionalReturn(
+            token,
+            abi.encodeWithSelector(token.transferFrom.selector, from, to, value)
+        );
     }
 
     /**
@@ -757,7 +835,10 @@ library SafeBEP20 {
             (value == 0) || (token.allowance(address(this), spender) == 0),
             "SafeBEP20: approve from non-zero to non-zero allowance"
         );
-        _callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, value));
+        _callOptionalReturn(
+            token,
+            abi.encodeWithSelector(token.approve.selector, spender, value)
+        );
     }
 
     function safeIncreaseAllowance(
@@ -765,8 +846,17 @@ library SafeBEP20 {
         address spender,
         uint256 value
     ) internal {
-        uint256 newAllowance = token.allowance(address(this), spender).add(value);
-        _callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, newAllowance));
+        uint256 newAllowance = token.allowance(address(this), spender).add(
+            value
+        );
+        _callOptionalReturn(
+            token,
+            abi.encodeWithSelector(
+                token.approve.selector,
+                spender,
+                newAllowance
+            )
+        );
     }
 
     function safeDecreaseAllowance(
@@ -774,9 +864,18 @@ library SafeBEP20 {
         address spender,
         uint256 value
     ) internal {
-        uint256 newAllowance =
-            token.allowance(address(this), spender).sub(value, "SafeBEP20: decreased allowance below zero");
-        _callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, newAllowance));
+        uint256 newAllowance = token.allowance(address(this), spender).sub(
+            value,
+            "SafeBEP20: decreased allowance below zero"
+        );
+        _callOptionalReturn(
+            token,
+            abi.encodeWithSelector(
+                token.approve.selector,
+                spender,
+                newAllowance
+            )
+        );
     }
 
     /**
@@ -790,25 +889,51 @@ library SafeBEP20 {
         // we're implementing it ourselves. We use {Address.functionCall} to perform this call, which verifies that
         // the target address contains contract code and also asserts for success in the low-level call.
 
-        bytes memory returndata = address(token).functionCall(data, "SafeBEP20: low-level call failed");
+        bytes memory returndata = address(token).functionCall(
+            data,
+            "SafeBEP20: low-level call failed"
+        );
         if (returndata.length > 0) {
             // Return data is optional
             // solhint-disable-next-line max-line-length
-            require(abi.decode(returndata, (bool)), "SafeBEP20: BEP20 operation did not succeed");
+            require(
+                abi.decode(returndata, (bool)),
+                "SafeBEP20: BEP20 operation did not succeed"
+            );
         }
     }
 }
 
-// File: contracts/DBirbPoolInitializable.sol
+// File: contracts/IBirbReferral.sol
+
+interface IBirbReferral {
+    /**
+     * @dev Record referral.
+     */
+    function recordReferral(address user, address referrer) external;
+
+    /**
+     * @dev Record referral commission.
+     */
+    function recordReferralCommission(address referrer, uint256 commission)
+        external;
+
+    /**
+     * @dev Get the referrer address that referred the user.
+     */
+    function getReferrer(address user) external view returns (address);
+}
+
+// File: contracts/BirbPoolInitializable.sol
 
 pragma solidity 0.6.12;
 
-contract DBirbPoolInitializable is Ownable, ReentrancyGuard {
+contract BirbPoolInitializable is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     using SafeBEP20 for IBEP20;
 
     // The address of the smart chef factory
-    address public DBIRB_POOL_FACTORY;
+    address public BIRB_POOL_FACTORY;
 
     // Whether a limit is set for users
     bool public hasUserLimit;
@@ -828,6 +953,13 @@ contract DBirbPoolInitializable is Ownable, ReentrancyGuard {
     // The block number of the last pool update
     uint256 public lastRewardBlock;
 
+    // Birb referral contract address.
+    IBirbReferral public birbReferral;
+    // Referral commission rate in basis points. default 2%
+    uint16 public referralCommissionRate = 200;
+    // Max referral commission rate: 5%.
+    uint16 public constant MAXIMUM_REFERRAL_COMMISSION_RATE = 500;
+
     uint16 public constant MAX_DEPOSIT_FEE = 2000;
     uint256 public constant MAX_EMISSION_RATE = 10**7;
 
@@ -835,7 +967,7 @@ contract DBirbPoolInitializable is Ownable, ReentrancyGuard {
     uint16 public depositFee;
 
     // The fee address
-    address public feeAddress;
+    address payable public feeAddress;
 
     // The pool limit (0 if none)
     uint256 public poolLimitPerUser;
@@ -874,9 +1006,19 @@ contract DBirbPoolInitializable is Ownable, ReentrancyGuard {
     event NewPoolLimit(uint256 poolLimitPerUser);
     event RewardsStop(uint256 blockNumber);
     event Withdraw(address indexed user, uint256 amount);
+    event BirbReferralUpdated(address prevReferral, address newReferral);
+    event ReferralCommissionRateUpdated(
+        uint16 prevCommissionRate,
+        uint16 newCommissionRate
+    );
+    event ReferralCommissionPaid(
+        address indexed user,
+        address indexed referrer,
+        uint256 commissionAmount
+    );
 
     constructor() public {
-        DBIRB_POOL_FACTORY = msg.sender;
+        BIRB_POOL_FACTORY = msg.sender;
     }
 
     /**
@@ -889,6 +1031,7 @@ contract DBirbPoolInitializable is Ownable, ReentrancyGuard {
      * @param _poolLimitPerUser: pool limit per user in stakedToken (if any, else 0)
      * @param _depositFee: deposit fee
      * @param _feeAddress: fee address
+     * @param _birbReferral: birb referral address
      * @param _admin: admin address with ownership
      */
     function initialize(
@@ -899,18 +1042,24 @@ contract DBirbPoolInitializable is Ownable, ReentrancyGuard {
         uint256 _bonusEndBlock,
         uint256 _poolLimitPerUser,
         uint16 _depositFee,
-        address _feeAddress,
+        address payable _feeAddress,
+        IBirbReferral _birbReferral,
         address _admin
     ) external {
         require(!isInitialized, "Already initialized");
-        require(msg.sender == DBIRB_POOL_FACTORY, "Not factory");
+        require(msg.sender == BIRB_POOL_FACTORY, "Not factory");
+        require(_stakedToken.totalSupply() >= 0, "Invalid stake token");
+        require(_rewardToken.totalSupply() >= 0, "Invalid reward token");
         require(_feeAddress != address(0), "Invalid zero address");
 
         _stakedToken.balanceOf(address(this));
         _rewardToken.balanceOf(address(this));
         // require(_stakedToken != _rewardToken, "stakedToken must be different from rewardToken");
         require(_startBlock > block.number, "startBlock cannot be in the past");
-        require(_startBlock < _bonusEndBlock, "startBlock must be lower than endBlock");
+        require(
+            _startBlock < _bonusEndBlock,
+            "startBlock must be lower than endBlock"
+        );
 
         // Make this contract initialized
         isInitialized = true;
@@ -929,6 +1078,13 @@ contract DBirbPoolInitializable is Ownable, ReentrancyGuard {
             poolLimitPerUser = _poolLimitPerUser;
         }
 
+        require(
+            address(_birbReferral) != address(0),
+            "Invalid referral address"
+        );
+        birbReferral = _birbReferral;
+        emit BirbReferralUpdated(address(0), address(_birbReferral));
+
         uint256 decimalsRewardToken = uint256(rewardToken.decimals());
         require(decimalsRewardToken < 30, "Must be inferior to 30");
 
@@ -945,7 +1101,7 @@ contract DBirbPoolInitializable is Ownable, ReentrancyGuard {
      * @notice Deposit staked tokens and collect reward tokens (if any)
      * @param _amount: amount to withdraw (in rewardToken)
      */
-    function deposit(uint256 _amount) external nonReentrant {
+    function deposit(uint256 _amount, address _referrer) external nonReentrant {
         UserInfo storage user = userInfo[msg.sender];
 
         if (hasUserLimit) {
@@ -957,13 +1113,20 @@ contract DBirbPoolInitializable is Ownable, ReentrancyGuard {
 
         _updatePool();
 
+        // Record new referrer, careful check in referral function
+        if (_amount > 0 && address(birbReferral) != address(0)) {
+            birbReferral.recordReferral(msg.sender, _referrer);
+        }
+
         if (user.amount > 0) {
-            uint256 pending =
-                user.amount.mul(accTokenPerShare).div(PRECISION_FACTOR).sub(
-                    user.rewardDebt
-                );
+            uint256 pending = user
+                .amount
+                .mul(accTokenPerShare)
+                .div(PRECISION_FACTOR)
+                .sub(user.rewardDebt);
             if (pending > 0) {
                 safeRewardTransfer(msg.sender, pending);
+                payReferralCommission(msg.sender, pending);
             }
         }
 
@@ -997,14 +1160,18 @@ contract DBirbPoolInitializable is Ownable, ReentrancyGuard {
      */
     function withdraw(uint256 _amount) external nonReentrant {
         UserInfo storage user = userInfo[msg.sender];
-        require(stakedSupply >= _amount && user.amount >= _amount, "Amount to withdraw too high");
+        require(
+            stakedSupply >= _amount && user.amount >= _amount,
+            "Amount to withdraw too high"
+        );
 
         _updatePool();
 
-        uint256 pending =
-            user.amount.mul(accTokenPerShare).div(PRECISION_FACTOR).sub(
-                user.rewardDebt
-            );
+        uint256 pending = user
+            .amount
+            .mul(accTokenPerShare)
+            .div(PRECISION_FACTOR)
+            .sub(user.rewardDebt);
 
         if (_amount > 0) {
             user.amount = user.amount.sub(_amount);
@@ -1014,6 +1181,7 @@ contract DBirbPoolInitializable is Ownable, ReentrancyGuard {
 
         if (pending > 0) {
             safeRewardTransfer(msg.sender, pending);
+            payReferralCommission(msg.sender, pending);
         }
 
         user.rewardDebt = user.amount.mul(accTokenPerShare).div(
@@ -1027,13 +1195,55 @@ contract DBirbPoolInitializable is Ownable, ReentrancyGuard {
      * @notice Safe reward transfer, just in case if rounding error causes pool to not have enough reward tokens.
      * @param _to receiver address
      * @param _amount amount to transfer
+     * @return realAmount amount sent to the receiver
      */
-    function safeRewardTransfer(address _to, uint256 _amount) internal {
+    function safeRewardTransfer(address _to, uint256 _amount)
+        internal
+        returns (uint256 realAmount)
+    {
         uint256 rewardBalance = rewardToken.balanceOf(address(this));
-        if (_amount > rewardBalance) {
-            rewardToken.safeTransfer(_to, rewardBalance);
+        if (_amount > 0 && rewardBalance > 0) {
+            realAmount = _amount;
+            // When there is not enough reward balance, just send available rewards
+            if (realAmount > rewardBalance) {
+                realAmount = rewardBalance;
+            }
+
+            // When staked token is same as reward token, rewarding amount should not occupy staked amount
+            if (
+                address(stakedToken) != address(rewardToken) ||
+                stakedSupply.add(realAmount) <= rewardBalance
+            ) {
+                rewardToken.safeTransfer(_to, realAmount);
+            } else if (stakedSupply < rewardBalance) {
+                realAmount = rewardBalance.sub(stakedSupply);
+                rewardToken.safeTransfer(_to, realAmount);
+            } else {
+                realAmount = 0;
+            }
         } else {
-            rewardToken.safeTransfer(_to, _amount);
+            realAmount = 0;
+        }
+
+        return realAmount;
+    }
+
+    // Pay referral commission to the referrer who referred this user.
+    function payReferralCommission(address _user, uint256 _pending) internal {
+        if (address(birbReferral) != address(0) && referralCommissionRate > 0) {
+            address referrer = birbReferral.getReferrer(_user);
+            uint256 commissionAmount = _pending.mul(referralCommissionRate).div(
+                10000
+            );
+
+            if (referrer != address(0) && commissionAmount > 0) {
+                safeRewardTransfer(referrer, commissionAmount);
+                birbReferral.recordReferralCommission(
+                    referrer,
+                    commissionAmount
+                );
+                emit ReferralCommissionPaid(_user, referrer, commissionAmount);
+            }
         }
     }
 
@@ -1060,7 +1270,10 @@ contract DBirbPoolInitializable is Ownable, ReentrancyGuard {
      * @dev Only callable by owner. Needs to be for emergency.
      */
     function emergencyRewardWithdraw(uint256 _amount) external onlyOwner {
-        require(startBlock > block.number || bonusEndBlock < block.number, "Not allowed to remove reward tokens while pool is live");
+        require(
+            startBlock > block.number || bonusEndBlock < block.number,
+            "Not allowed to remove reward tokens while pool is live"
+        );
         safeRewardTransfer(msg.sender, _amount);
 
         emit EmergencyRewardWithdraw(_amount);
@@ -1102,6 +1315,33 @@ contract DBirbPoolInitializable is Ownable, ReentrancyGuard {
         emit RewardsStop(block.number);
     }
 
+    // Update the birb referral contract address by the owner
+    function setBirbReferral(IBirbReferral _birbReferral) external onlyOwner {
+        require(address(birbReferral) != address(_birbReferral), "Already set");
+        emit BirbReferralUpdated(address(birbReferral), address(_birbReferral));
+        birbReferral = _birbReferral;
+    }
+
+    // Update referral commission rate by the owner
+    function setReferralCommissionRate(uint16 _referralCommissionRate)
+        external
+        onlyOwner
+    {
+        require(
+            _referralCommissionRate <= MAXIMUM_REFERRAL_COMMISSION_RATE,
+            "setReferralCommissionRate: invalid referral commission rate basis points"
+        );
+        require(
+            referralCommissionRate != _referralCommissionRate,
+            "Already Set"
+        );
+        emit ReferralCommissionRateUpdated(
+            referralCommissionRate,
+            _referralCommissionRate
+        );
+        referralCommissionRate = _referralCommissionRate;
+    }
+
     /*
      * @notice Update pool limit per user
      * @dev Only callable by owner.
@@ -1134,7 +1374,10 @@ contract DBirbPoolInitializable is Ownable, ReentrancyGuard {
     function updateRewardPerBlock(uint256 _rewardPerBlock) external onlyOwner {
         require(block.number < startBlock, "Pool has started");
         uint256 rewardDecimals = uint256(rewardToken.decimals());
-        require(_rewardPerBlock <= MAX_EMISSION_RATE.mul(10**rewardDecimals), "Out of maximum emission rate");
+        require(
+            _rewardPerBlock <= MAX_EMISSION_RATE.mul(10**rewardDecimals),
+            "Out of maximum emission rate"
+        );
         rewardPerBlock = _rewardPerBlock;
         emit NewRewardPerBlock(_rewardPerBlock);
     }
@@ -1159,7 +1402,7 @@ contract DBirbPoolInitializable is Ownable, ReentrancyGuard {
         require(_feeAddress != address(0), "Invalid zero address");
         require(feeAddress != _feeAddress, "Same fee address already set");
 
-        feeAddress = _feeAddress;
+        feeAddress = payable(_feeAddress);
         emit NewFeeAddress(feeAddress);
     }
 
@@ -1202,10 +1445,9 @@ contract DBirbPoolInitializable is Ownable, ReentrancyGuard {
         if (block.number > lastRewardBlock && stakedSupply != 0) {
             uint256 multiplier = _getMultiplier(lastRewardBlock, block.number);
             uint256 cakeReward = multiplier.mul(rewardPerBlock);
-            uint256 adjustedTokenPerShare =
-                accTokenPerShare.add(
-                    cakeReward.mul(PRECISION_FACTOR).div(stakedSupply)
-                );
+            uint256 adjustedTokenPerShare = accTokenPerShare.add(
+                cakeReward.mul(PRECISION_FACTOR).div(stakedSupply)
+            );
             return
                 user
                     .amount
@@ -1258,5 +1500,73 @@ contract DBirbPoolInitializable is Ownable, ReentrancyGuard {
         } else {
             return bonusEndBlock.sub(_from);
         }
+    }
+}
+
+// File: contracts/BirbPoolFactory.sol
+
+pragma solidity 0.6.12;
+
+contract BirbPoolFactory is Ownable {
+    event NewBirbPoolContract(address indexed smartChef);
+
+    constructor() public {
+        //
+    }
+
+    /**
+     * @notice Deploy the pool
+     * @param _stakedToken: staked token address
+     * @param _rewardToken: reward token address
+     * @param _rewardPerBlock: reward per block (in rewardToken)
+     * @param _startBlock: start block
+     * @param _bonusEndBlock: end block
+     * @param _depositFee: deposit fee
+     * @param _poolLimitPerUser: pool limit per user in stakedToken (if any, else 0)
+     * @param _feeAddress: address which the fee sent to
+     * @param _birbReferral: referral contrct address
+     * @param _admin: admin address with ownership
+     */
+    function deployPool(
+        IBEP20 _stakedToken,
+        IBEP20 _rewardToken,
+        uint256 _rewardPerBlock,
+        uint256 _startBlock,
+        uint256 _bonusEndBlock,
+        uint256 _poolLimitPerUser,
+        uint16 _depositFee,
+        address payable _feeAddress,
+        IBirbReferral _birbReferral,
+        address _admin
+    ) external onlyOwner {
+        bytes memory bytecode = type(BirbPoolInitializable).creationCode;
+        bytes32 salt = keccak256(
+            abi.encodePacked(_stakedToken, _rewardToken, _startBlock)
+        );
+        address smartChefAddress;
+
+        assembly {
+            smartChefAddress := create2(
+                0,
+                add(bytecode, 32),
+                mload(bytecode),
+                salt
+            )
+        }
+
+        BirbPoolInitializable(smartChefAddress).initialize(
+            _stakedToken,
+            _rewardToken,
+            _rewardPerBlock,
+            _startBlock,
+            _bonusEndBlock,
+            _poolLimitPerUser,
+            _depositFee,
+            _feeAddress,
+            _birbReferral,
+            _admin
+        );
+
+        emit NewBirbPoolContract(smartChefAddress);
     }
 }

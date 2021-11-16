@@ -25,7 +25,7 @@ contract BirbReferral is IBirbReferral, Ownable {
     );
     event OperatorUpdated(address indexed operator, bool indexed status);
 
-    modifier onlyOperator() {
+    modifier onlyOperator {
         require(operators[msg.sender], "Operator: caller is not the operator");
         _;
     }

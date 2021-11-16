@@ -168,8 +168,6 @@ abstract contract ReentrancyGuard {
 
 // File: @pancakeswap\pancake-swap-lib\contracts\math\SafeMath.sol
 
-
-
 pragma solidity >=0.4.0;
 
 /**
@@ -198,7 +196,7 @@ library SafeMath {
      */
     function add(uint256 a, uint256 b) internal pure returns (uint256) {
         uint256 c = a + b;
-        require(c >= a, 'SafeMath: addition overflow');
+        require(c >= a, "SafeMath: addition overflow");
 
         return c;
     }
@@ -214,7 +212,7 @@ library SafeMath {
      * - Subtraction cannot overflow.
      */
     function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-        return sub(a, b, 'SafeMath: subtraction overflow');
+        return sub(a, b, "SafeMath: subtraction overflow");
     }
 
     /**
@@ -257,7 +255,7 @@ library SafeMath {
         }
 
         uint256 c = a * b;
-        require(c / a == b, 'SafeMath: multiplication overflow');
+        require(c / a == b, "SafeMath: multiplication overflow");
 
         return c;
     }
@@ -275,7 +273,7 @@ library SafeMath {
      * - The divisor cannot be zero.
      */
     function div(uint256 a, uint256 b) internal pure returns (uint256) {
-        return div(a, b, 'SafeMath: division by zero');
+        return div(a, b, "SafeMath: division by zero");
     }
 
     /**
@@ -315,7 +313,7 @@ library SafeMath {
      * - The divisor cannot be zero.
      */
     function mod(uint256 a, uint256 b) internal pure returns (uint256) {
-        return mod(a, b, 'SafeMath: modulo by zero');
+        return mod(a, b, "SafeMath: modulo by zero");
     }
 
     /**
@@ -357,7 +355,6 @@ library SafeMath {
         }
     }
 }
-
 
 // File: @openzeppelin/contracts/token/ERC20/IERC20.sol
 
@@ -1476,8 +1473,9 @@ contract BirbLottery is ReentrancyGuard, IBirbLottery, Ownable {
         );
 
         require(
-            ((_endTime - block.timestamp) > MIN_LENGTH_LOTTERY) &&
-                ((_endTime - block.timestamp) < MAX_LENGTH_LOTTERY),
+            _endTime > block.timestamp &&
+                (_endTime.sub(block.timestamp) > MIN_LENGTH_LOTTERY) &&
+                (_endTime.sub(block.timestamp) < MAX_LENGTH_LOTTERY),
             "Lottery length outside of range"
         );
 
@@ -1494,16 +1492,16 @@ contract BirbLottery is ReentrancyGuard, IBirbLottery, Ownable {
         require(_treasuryFee <= MAX_TREASURY_FEE, "Treasury fee too high");
 
         require(
-            (_rewardsBreakdown[0] +
-                _rewardsBreakdown[1] +
-                _rewardsBreakdown[2] +
-                _rewardsBreakdown[3] +
-                _rewardsBreakdown[4] +
-                _rewardsBreakdown[5]) == 10000,
+            _rewardsBreakdown[0]
+                .add(_rewardsBreakdown[1])
+                .add(_rewardsBreakdown[2])
+                .add(_rewardsBreakdown[3])
+                .add(_rewardsBreakdown[4])
+                .add(_rewardsBreakdown[5]) == 10000,
             "Rewards must equal 10000"
         );
 
-        currentLotteryId++;
+        currentLotteryId = currentLotteryId.add(1);
 
         _lotteries[currentLotteryId] = Lottery({
             status: Status.Open,
@@ -1746,8 +1744,8 @@ contract BirbLottery is ReentrancyGuard, IBirbLottery, Ownable {
             _user
         ][_lotteryId].length;
 
-        if (length > (numberTicketsBoughtAtLotteryId - _cursor)) {
-            length = numberTicketsBoughtAtLotteryId - _cursor;
+        if (length > numberTicketsBoughtAtLotteryId.sub(_cursor)) {
+            length = numberTicketsBoughtAtLotteryId.sub(_cursor);
         }
 
         uint256[] memory lotteryTicketIds = new uint256[](length);
@@ -1756,7 +1754,7 @@ contract BirbLottery is ReentrancyGuard, IBirbLottery, Ownable {
 
         for (uint256 i = 0; i < length; i++) {
             lotteryTicketIds[i] = _userTicketIdsPerLotteryId[_user][_lotteryId][
-                i + _cursor
+                i.add(_cursor)
             ];
             ticketNumbers[i] = _tickets[lotteryTicketIds[i]].number;
 
@@ -1773,7 +1771,7 @@ contract BirbLottery is ReentrancyGuard, IBirbLottery, Ownable {
             lotteryTicketIds,
             ticketNumbers,
             ticketStatuses,
-            _cursor + length
+            _cursor.add(length)
         );
     }
 
